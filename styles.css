@@ -151,7 +151,7 @@ img {
 .hero {
   min-height: calc(100vh - 74px);
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
   align-items: center;
   gap: 54px;
   padding: 58px 0 72px;
@@ -178,9 +178,12 @@ h1 {
   margin: 0;
   max-width: 820px;
   color: #0b2438;
-  font-size: clamp(4rem, 5.2vw, 4.5rem);
-  line-height: 1.05;
+  font-size: clamp(3.5rem, 4.4vw, 4rem);
+  line-height: 1.08;
   letter-spacing: 0;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 
 h2 {
@@ -916,8 +919,8 @@ textarea:focus {
   }
 
   h1 {
-    font-size: 3.25rem;
-    line-height: 1.07;
+    font-size: 3rem;
+    line-height: 1.08;
   }
 
   .contact-copy {
@@ -993,8 +996,8 @@ textarea:focus {
   }
 
   h1 {
-    font-size: 2.625rem;
-    line-height: 1.08;
+    font-size: 2.5rem;
+    line-height: 1.1;
   }
 
   .hero-actions .btn,
@@ -1052,8 +1055,8 @@ textarea:focus {
   }
 
   h1 {
-    font-size: 2.5rem;
-    line-height: 1.08;
+    font-size: 2.375rem;
+    line-height: 1.1;
   }
 
   h2 {
