@@ -301,8 +301,8 @@ li {
 }
 
 .metric-card-top {
-  top: 22px;
-  right: -16px;
+  top: 12px;
+  right: -44px;
 }
 
 .metric-card-bottom {
@@ -774,6 +774,15 @@ li {
   white-space: normal;
 }
 
+@media (min-width: 1041px) {
+  .training-card .btn {
+    padding-left: 14px;
+    padding-right: 14px;
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+}
+
 .training-note {
   margin: 16px 0 0;
   color: var(--muted);
@@ -851,15 +860,17 @@ textarea {
 }
 
 .contact-form .area-select {
-  min-height: 64px;
-  padding: 18px 16px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  min-height: 48px;
+  padding: 12px 13px;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .contact-form button[type="submit"] {
-  min-height: 68px;
-  font-size: 1.05rem;
+  min-height: 48px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-size: 1rem;
 }
 
 input:focus,
@@ -916,6 +927,13 @@ textarea:focus {
   transform: translateY(0);
 }
 
+@media (max-width: 1180px) {
+  .metric-card-top {
+    top: 16px;
+    right: 0;
+  }
+}
+
 @media (max-width: 1040px) {
   .hero,
   .split-layout,
@@ -933,6 +951,11 @@ textarea:focus {
   h1 {
     font-size: 3rem;
     line-height: 1.08;
+  }
+
+  .metric-card-top {
+    top: 18px;
+    right: 18px;
   }
 
   .contact-copy {
