@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kairvia | Leads</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #0b2438;
+        --muted: #526477;
+        --line: #d8e4ef;
+        --soft: #eef7ff;
+        --blue: #0d3b66;
+        --blue-2: #1166f1;
+        --teal: #12b7b0;
+        --shadow: 0 18px 50px rgba(13, 59, 102, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        color: var(--ink);
+        background: #f6f9fc;
+      }
+
+      main {
+        width: min(100% - 32px, 1280px);
+        margin: 0 auto;
+        padding: 38px 0;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); }
+      p { color: var(--muted); }
+
+      .panel {
+        padding: 22px;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .auth {
+        max-width: 460px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        color: #20384d;
+        font-weight: 800;
+      }
+
+      input, button, select {
+        min-height: 48px;
+        padding: 12px 13px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font: inherit;
+      }
+
+      button {
+        color: white;
+        background: linear-gradient(135deg, var(--blue-2), var(--teal));
+        border: 0;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .filters button {
+        min-height: 40px;
+        padding: 8px 12px;
+        color: var(--blue);
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .filters button.active {
+        color: white;
+        background: linear-gradient(135deg, var(--blue-2), var(--teal));
+        border-color: transparent;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+      }
+
+      table {
+        width: 100%;
+        min-width: 1120px;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        font-size: 0.92rem;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        color: #20384d;
+        background: var(--soft);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+      }
+
+      td { color: var(--muted); }
+      .hidden { display: none; }
+      .status { margin-top: 12px; color: var(--muted); font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Leads Kairvia</h1>
+          <p>Contactos guardados en Brevo, ordenados del más reciente al más antiguo.</p>
+        </div>
+      </header>
+
+      <section class="panel auth" id="auth-panel">
+        <form id="auth-form">
+          <label>
+            Contraseña
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit">Ver leads</button>
+          <p class="status" id="auth-status"></p>
+        </form>
+      </section>
+
+      <section class="panel hidden" id="leads-panel">
+        <div class="filters" id="filters">
+          <button class="active" type="button" data-filter="Todos">Todos</button>
+          <button type="button" data-filter="Diagnóstico">Diagnóstico</button>
+          <button type="button" data-filter="Contacto">Contacto</button>
+          <button type="button" data-filter="FUNDAE">FUNDAE</button>
+          <button type="button" data-filter="WhatsApp">WhatsApp</button>
+          <button type="button" data-filter="Correo">Correo</button>
+          <button type="button" data-filter="Nuevos">Nuevos</button>
+        </div>
+        <p class="status" id="leads-status"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Nombre</th>
+                <th>Empresa</th>
+                <th>Email</th>
+                <th>WhatsApp</th>
+                <th>Preferencia</th>
+                <th>Mensaje</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="leads-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const authPanel = document.querySelector('#auth-panel');
+      const leadsPanel = document.querySelector('#leads-panel');
+      const authForm = document.querySelector('#auth-form');
+      const authStatus = document.querySelector('#auth-status');
+      const leadsStatus = document.querySelector('#leads-status');
+      const leadsBody = document.querySelector('#leads-body');
+      const filters = document.querySelector('#filters');
+      let leads = [];
+      let currentFilter = 'Todos';
+      let password = '';
+
+      const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      })[char]);
+
+      const matchesFilter = (lead) => {
+        if (currentFilter === 'Todos') return true;
+        if (currentFilter === 'Nuevos') return lead.status === 'Nuevo';
+        if (currentFilter === 'WhatsApp' || currentFilter === 'Correo') return lead.contactPreference === currentFilter;
+        return lead.formType === currentFilter;
+      };
+
+      const renderLeads = () => {
+        const filtered = leads.filter(matchesFilter);
+        leadsStatus.textContent = `${filtered.length} lead${filtered.length === 1 ? '' : 's'} mostrado${filtered.length === 1 ? '' : 's'}.`;
+        leadsBody.innerHTML = filtered.map((lead) => `
+          <tr>
+            <td>${escapeHtml(lead.date)}</td>
+            <td>${escapeHtml(lead.formType)}</td>
+            <td>${escapeHtml(lead.name)}</td>
+            <td>${escapeHtml(lead.company)}</td>
+            <td>${escapeHtml(lead.email)}</td>
+            <td>${escapeHtml(lead.whatsapp)}</td>
+            <td>${escapeHtml(lead.contactPreference)}</td>
+            <td>${escapeHtml(lead.message)}</td>
+            <td>${escapeHtml(lead.status)}</td>
+          </tr>
+        `).join('');
+      };
+
+      const loadLeads = async () => {
+        authStatus.textContent = 'Cargando leads...';
+        const response = await fetch(`/api/leads?password=${encodeURIComponent(password)}`);
+
+        if (!response.ok) {
+          throw new Error('No se han podido cargar los leads.');
+        }
+
+        const data = await response.json();
+        leads = data.leads || [];
+        authPanel.classList.add('hidden');
+        leadsPanel.classList.remove('hidden');
+        renderLeads();
+      };
+
+      authForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        password = new FormData(authForm).get('password');
+
+        try {
+          await loadLeads();
+        } catch (error) {
+          authStatus.textContent = error.message;
+        }
+      });
+
+      filters.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-filter]');
+        if (!button) return;
+        filters.querySelectorAll('button').forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        currentFilter = button.dataset.filter;
+        renderLeads();
+      });
+    </script>
+  </body>
+</html>

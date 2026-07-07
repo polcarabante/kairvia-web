@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260706" />
+    <link rel="stylesheet" href="styles.css?v=20260707-brevo-leads" />
   </head>
   <body>
     <header class="site-header" id="inicio">
@@ -50,7 +50,7 @@
             tu equipo dedique menos tiempo al trabajo manual y mas a tareas de valor.
           </p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#contacto">Solicitar diagnostico gratuito</a>
+            <a class="btn btn-primary" href="#contacto" data-diagnostic-open>Solicitar diagnostico gratuito</a>
             <a class="btn btn-secondary" href="#ejemplos">Ver ejemplos de automatizacion</a>
           </div>
           <p class="trust-line">
@@ -331,7 +331,7 @@
               <li>Estimación del ahorro potencial de tiempo</li>
             </ul>
             <p class="package-note">Ideal si todavía no sabes exactamente dónde aplicar IA en tu empresa.</p>
-            <a class="btn btn-primary" href="#contacto">Solicitar diagnóstico</a>
+            <a class="btn btn-primary" href="#contacto" data-diagnostic-open>Solicitar diagnóstico</a>
           </article>
           <article class="package-card reveal">
             <span class="package-label">02 · Implementación</span>
@@ -424,7 +424,7 @@
               <li>Apoyo en la gestión y documentación necesaria</li>
               <li>Implantación orientada a resultados y ahorro de tiempo</li>
             </ul>
-            <a class="btn btn-primary" href="#contacto">Solicita una evaluación gratuita de tu crédito formativo</a>
+            <button class="btn btn-primary fundae-calculator-trigger" type="button" data-fundae-open>Calcular mi crédito FUNDAE</button>
             <p class="training-note">
               La bonificación está sujeta al crédito disponible de cada empresa y
               al cumplimiento de los requisitos establecidos por FUNDAE.
@@ -440,7 +440,7 @@
             Cuentanos como trabaja tu equipo y te diremos que procesos puedes
             automatizar, cuanto tiempo podrias ahorrar y por donde conviene empezar.
           </p>
-          <a class="btn btn-primary" href="#contacto">Solicitar diagnostico gratuito</a>
+          <a class="btn btn-primary" href="#contacto" data-diagnostic-open>Solicitar diagnostico gratuito</a>
         </div>
       </section>
 
@@ -471,22 +471,27 @@
               Telefono
               <input type="tel" name="telefono" autocomplete="tel" />
             </label>
-            <label class="full">
-              Area que quieres mejorar
-              <select name="area" class="area-select" required>
-                <option value="">Selecciona un area</option>
-                <option>Administración y documentación</option>
-                <option>Contabilidad y facturación</option>
-                <option>Compras y proveedores</option>
-                <option>Ventas y CRM</option>
-                <option>Atención al cliente</option>
-                <option>Marketing</option>
-                <option>RRHH</option>
-                <option>Dirección y reporting</option>
-                <option>Operaciones internas</option>
-                <option>Otro</option>
-              </select>
-            </label>
+            <div class="full form-field">
+              <span class="field-label">Área que quieres mejorar</span>
+              <input type="hidden" name="areas" data-areas-value />
+              <div class="area-multiselect" data-area-multiselect>
+                <button class="area-multiselect-toggle" type="button" aria-expanded="false" aria-haspopup="listbox">
+                  <span data-area-summary>Selecciona una o varias áreas</span>
+                </button>
+                <div class="area-multiselect-panel" hidden>
+                  <label><input type="checkbox" name="areas[]" value="Administración y documentación" />Administración y documentación</label>
+                  <label><input type="checkbox" name="areas[]" value="Contabilidad y facturación" />Contabilidad y facturación</label>
+                  <label><input type="checkbox" name="areas[]" value="Compras y proveedores" />Compras y proveedores</label>
+                  <label><input type="checkbox" name="areas[]" value="Ventas y CRM" />Ventas y CRM</label>
+                  <label><input type="checkbox" name="areas[]" value="Atención al cliente" />Atención al cliente</label>
+                  <label><input type="checkbox" name="areas[]" value="Marketing" />Marketing</label>
+                  <label><input type="checkbox" name="areas[]" value="RRHH" />RRHH</label>
+                  <label><input type="checkbox" name="areas[]" value="Dirección y reporting" />Dirección y reporting</label>
+                  <label><input type="checkbox" name="areas[]" value="Operaciones internas" />Operaciones internas</label>
+                  <label><input type="checkbox" name="areas[]" value="Otro" />Otro</label>
+                </div>
+              </div>
+            </div>
             <label class="full other-area-field" hidden>
               Otro área o proceso
               <input
@@ -506,11 +511,12 @@
       </section>
     </main>
 
+
     <footer class="footer">
       <p>Kairvia - Sistemas de IA y automatizacion para procesos de empresa.</p>
       <a href="#inicio">Volver arriba</a>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=20260707-brevo-leads"></script>
   </body>
 </html>
