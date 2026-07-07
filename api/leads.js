@@ -55,6 +55,10 @@ const classifyBrevoError = (status, text = "") => {
     return "list ID incorrecto o lista inexistente";
   }
 
+  if (normalized.includes("already exists") || normalized.includes("duplicate_parameter") || normalized.includes("duplicate")) {
+    return "contacto ya existente en Brevo";
+  }
+
   if (normalized.includes("attribute") || normalized.includes("attributes") || normalized.includes("not a valid attribute")) {
     return "atributo inexistente o tipo de atributo incorrecto en Brevo";
   }
@@ -172,56 +176,61 @@ const sendAdminNotification = async (lead) => {
   });
 };
 
-const buildContactPayload = (lead) => {
-  const listId = getListIdForType(lead.formType);
-  const submittedAt = lead.submittedAt || new Date().toISOString();
-  const submittedDate = submittedAt.slice(0, 10);
-  const phone = lead.phone || "";
-  const externalId = phone ? `whatsapp:${phone}` : `${lead.formType || "Lead"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+const validateBrevoListId = (formType) => {
+  const listId = getListIdForType(formType);
 
   if (!Number.isInteger(listId) || listId <= 0) {
-    const error = new Error(`Brevo list ID inválido para ${lead.formType}. Revisa la variable de entorno y usa solo el número, por ejemplo 2, sin #.`);
+    const error = new Error(`Brevo list ID inválido para ${formType}. Revisa la variable de entorno y usa solo el número, por ejemplo 2, sin #.`);
     error.category = "list ID incorrecto o lista inexistente";
     throw error;
   }
 
+  return listId;
+};
+
+const getContactIdentifier = (lead) => lead.email || (lead.phone ? `whatsapp:${lead.phone}` : "");
+
+const buildContactPayload = (lead) => {
+  const listId = validateBrevoListId(lead.formType);
+  const phone = lead.phone || "";
   const payload = {
     updateEnabled: true,
     listIds: [listId],
     attributes: {
       NOMBRE: lead.name || "",
       EMPRESA: lead.company || "",
-      WHATSAPP: phone,
       TELEFONO: phone,
-      SMS: phone,
-      TIPO_FORMULARIO: lead.formType || "",
-      PREFERENCIA_CONTACTO: lead.contactPreference || "",
       MENSAJE: lead.message || "",
-      AREAS: lead.areas || "",
-      FECHA_ENVIO: submittedDate,
-      ESTADO: "Nuevo",
     },
   };
 
   if (lead.email) {
     payload.email = lead.email;
   } else if (phone) {
-    payload.ext_id = externalId;
+    payload.ext_id = `whatsapp:${phone}`;
+    payload.attributes.WHATSAPP = phone;
+    payload.attributes.SMS = phone;
   } else {
-    payload.ext_id = externalId;
+    payload.ext_id = `${lead.formType || "Lead"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   return payload;
 };
 
+const buildUpdatePayload = (lead) => ({
+  attributes: buildContactPayload(lead).attributes,
+  listIds: [validateBrevoListId(lead.formType)],
+});
+
 const saveLead = async (lead) => {
   const payload = buildContactPayload(lead);
+  const identifier = getContactIdentifier(lead);
   console.log("Saving Brevo lead", JSON.stringify({
     formType: lead.formType,
     hasEmail: Boolean(lead.email),
     phone: lead.phone,
+    identifier,
     extId: payload.ext_id,
-    hasSmsAttribute: Boolean(payload.attributes?.SMS),
     listIds: payload.listIds,
     payload,
   }));
@@ -233,26 +242,22 @@ const saveLead = async (lead) => {
     });
     return;
   } catch (error) {
-    if (error.category !== "atributo inexistente o tipo de atributo incorrecto en Brevo") {
+    if (error.category !== "contacto ya existente en Brevo") {
       throw error;
     }
 
-    const fallbackPayload = {
-      ...payload,
-      attributes: { ...payload.attributes },
-    };
-    delete fallbackPayload.attributes.SMS;
-    delete fallbackPayload.attributes.FECHA_ENVIO;
-
-    console.error("Retrying Brevo lead without optional attributes", JSON.stringify({
+    const updatePayload = buildUpdatePayload(lead);
+    const encodedIdentifier = encodeURIComponent(identifier);
+    console.error("Brevo contact exists, updating contact", JSON.stringify({
       originalCategory: error.category,
       originalMessage: error.message,
-      fallbackPayload,
+      identifier,
+      updatePayload,
     }));
 
-    await brevoFetch("/contacts", {
-      method: "POST",
-      body: JSON.stringify(fallbackPayload),
+    await brevoFetch(`/contacts/${encodedIdentifier}`, {
+      method: "PUT",
+      body: JSON.stringify(updatePayload),
     });
   }
 };
@@ -355,9 +360,9 @@ const handleGet = async (request, response) => {
   }
 
   const listIds = [
-    Number(process.env.BREVO_DIAGNOSTIC_LIST_ID),
-    Number(process.env.BREVO_CONTACT_LIST_ID),
-    Number(process.env.BREVO_FUNDAE_LIST_ID),
+    parseBrevoListId(process.env.BREVO_DIAGNOSTIC_LIST_ID),
+    parseBrevoListId(process.env.BREVO_CONTACT_LIST_ID),
+    parseBrevoListId(process.env.BREVO_FUNDAE_LIST_ID),
   ].filter(Boolean);
 
   const contacts = (await Promise.all(listIds.map(listContactsFromList))).flat();
