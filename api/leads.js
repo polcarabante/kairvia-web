@@ -6,6 +6,34 @@ const json = (response, statusCode, body) => {
 
 const normalizeText = (value = "") => String(value || "").trim();
 
+const normalizeSpanishPhone = (value = "") => {
+  const raw = normalizeText(value);
+
+  if (!raw) return "";
+
+  let phone = raw.replace(/[\s().-]/g, "");
+
+  if (phone.startsWith("00")) {
+    phone = `+${phone.slice(2)}`;
+  }
+
+  if (phone.startsWith("+")) {
+    return `+${phone.slice(1).replace(/\D/g, "")}`;
+  }
+
+  const digits = phone.replace(/\D/g, "");
+
+  if (digits.length === 9) {
+    return `+34${digits}`;
+  }
+
+  if (digits.length === 11 && digits.startsWith("34")) {
+    return `+${digits}`;
+  }
+
+  return digits ? `+${digits}` : "";
+};
+
 const getListIdForType = (type) => {
   if (type === "FUNDAE") return Number(process.env.BREVO_FUNDAE_LIST_ID);
   if (type === "Contacto") return Number(process.env.BREVO_CONTACT_LIST_ID);
@@ -31,6 +59,12 @@ const brevoFetch = async (path, options = {}) => {
 
   if (!response.ok) {
     const text = await response.text();
+    console.error("Brevo API error", {
+      path,
+      status: response.status,
+      response: text,
+      requestBody: options.body,
+    });
     throw new Error(`Brevo API error ${response.status}: ${text}`);
   }
 
@@ -122,6 +156,7 @@ const buildContactPayload = (lead) => {
       EMPRESA: lead.company || "",
       WHATSAPP: phone,
       TELEFONO: phone,
+      SMS: phone,
       TIPO_FORMULARIO: lead.formType || "",
       PREFERENCIA_CONTACTO: lead.contactPreference || "",
       MENSAJE: lead.message || "",
@@ -133,6 +168,9 @@ const buildContactPayload = (lead) => {
 
   if (lead.email) {
     payload.email = lead.email;
+  } else if (phone) {
+    payload.sms = phone;
+    payload.ext_id = externalId;
   } else {
     payload.ext_id = externalId;
   }
@@ -141,9 +179,17 @@ const buildContactPayload = (lead) => {
 };
 
 const saveLead = async (lead) => {
+  const payload = buildContactPayload(lead);
+  console.log("Saving Brevo lead", {
+    formType: lead.formType,
+    hasEmail: Boolean(lead.email),
+    phone: lead.phone,
+    listIds: payload.listIds,
+  });
+
   await brevoFetch("/contacts", {
     method: "POST",
-    body: JSON.stringify(buildContactPayload(lead)),
+    body: JSON.stringify(payload),
   });
 };
 
@@ -156,7 +202,7 @@ const mapContactToLead = (contact) => {
     name: attrs.NOMBRE || "",
     company: attrs.EMPRESA || "",
     email: contact.email || "",
-    whatsapp: attrs.WHATSAPP || attrs.TELEFONO || "",
+    whatsapp: attrs.WHATSAPP || attrs.SMS || attrs.TELEFONO || "",
     contactPreference: attrs.PREFERENCIA_CONTACTO || "",
     message: attrs.MENSAJE || "",
     areas: attrs.AREAS || "",
@@ -175,7 +221,7 @@ const handlePost = async (request, response) => {
   const formType = normalizeText(body.formType);
   const contactPreference = normalizeText(body.contactPreference || body.contactMethod);
   const email = normalizeText(body.email).toLowerCase();
-  const phone = normalizeText(body.phone || body.whatsapp || body.telefono);
+  const phone = normalizeSpanishPhone(body.phone || body.whatsapp || body.telefono);
   const name = normalizeText(body.name || body.nombre);
   const company = normalizeText(body.company || body.empresa);
 
@@ -204,13 +250,35 @@ const handlePost = async (request, response) => {
   };
 
   await saveLead(lead);
-  await sendAdminNotification(lead);
 
-  if (email) {
-    await sendConfirmationEmail({ name, email });
+  const notifications = [];
+
+  try {
+    await sendAdminNotification(lead);
+    notifications.push("admin");
+  } catch (error) {
+    console.error("Brevo admin notification error", {
+      message: error.message,
+      formType: lead.formType,
+      email: lead.email,
+      phone: lead.phone,
+    });
   }
 
-  return json(response, 200, { ok: true });
+  if (email) {
+    try {
+      await sendConfirmationEmail({ name, email });
+      notifications.push("confirmation");
+    } catch (error) {
+      console.error("Brevo confirmation email error", {
+        message: error.message,
+        email,
+        formType: lead.formType,
+      });
+    }
+  }
+
+  return json(response, 200, { ok: true, phone, notifications });
 };
 
 const handleGet = async (request, response) => {
@@ -252,6 +320,12 @@ export default async function handler(request, response) {
     response.setHeader("Allow", "GET, POST, OPTIONS");
     return json(response, 405, { error: "Method not allowed" });
   } catch (error) {
+    console.error("Lead endpoint error", {
+      message: error.message,
+      stack: error.stack,
+      method: request.method,
+      body: request.body,
+    });
     return json(response, 500, { error: error.message || "Unexpected error" });
   }
 }
