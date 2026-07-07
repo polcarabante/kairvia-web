@@ -110,7 +110,16 @@ const submitLead = async (payload) => {
   });
 
   if (!response.ok) {
-    throw new Error("No se pudo guardar el lead en Brevo");
+    let message = "No se pudo guardar el lead en Brevo";
+
+    try {
+      const data = await response.json();
+      message = data.category ? `${data.category}: ${data.error || message}` : data.error || message;
+    } catch (error) {
+      message = `${message}. Estado HTTP: ${response.status}`;
+    }
+
+    throw new Error(message);
   }
 
   return response.json();
@@ -266,7 +275,7 @@ const bindFundaeModalEvents = () => {
       fundaeResultEmployee.textContent = `Esto equivale a unos ${formatCurrency(creditPerEmployee)} por empleado. Hemos guardado tus datos para contactar contigo por el canal indicado.`;
       fundaeResult.hidden = false;
     } catch (error) {
-      fundaeResultMain.textContent = "No se ha podido guardar la solicitud. Inténtalo de nuevo en unos minutos.";
+      fundaeResultMain.textContent = `No se ha podido guardar la solicitud: ${error.message}`;
       fundaeResultEmployee.textContent = "";
       fundaeResult.hidden = false;
     }
@@ -452,7 +461,7 @@ const bindDiagnosticModalEvents = () => {
         ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
         : "Solicitud enviada correctamente. Guardamos sus datos para contactarle por WhatsApp.";
     } catch (error) {
-      diagnosticStatus.textContent = "No se ha podido enviar la solicitud. Inténtelo de nuevo en unos minutos.";
+      diagnosticStatus.textContent = `No se ha podido enviar la solicitud: ${error.message}`;
       diagnosticStatus.classList.add("error");
     } finally {
       submitButton.disabled = false;
@@ -507,6 +516,6 @@ form?.addEventListener("submit", async (event) => {
       ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
       : "Solicitud enviada correctamente. Guardamos sus datos para contactarle.";
   } catch (error) {
-    formNote.textContent = "No se ha podido enviar la solicitud. Inténtalo de nuevo en unos minutos.";
+    formNote.textContent = `No se ha podido enviar la solicitud: ${error.message}`;
   }
 });

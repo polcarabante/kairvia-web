@@ -40,6 +40,32 @@ const getListIdForType = (type) => {
   return Number(process.env.BREVO_DIAGNOSTIC_LIST_ID);
 };
 
+const classifyBrevoError = (status, text = "") => {
+  const normalized = text.toLowerCase();
+
+  if (status === 401 || normalized.includes("unauthorized") || normalized.includes("api key")) {
+    return "API key incorrecta o ausente";
+  }
+
+  if (normalized.includes("list") || normalized.includes("listid") || normalized.includes("list id")) {
+    return "list ID incorrecto o lista inexistente";
+  }
+
+  if (normalized.includes("attribute") || normalized.includes("attributes") || normalized.includes("not a valid attribute")) {
+    return "atributo inexistente o tipo de atributo incorrecto en Brevo";
+  }
+
+  if (normalized.includes("phone") || normalized.includes("sms") || normalized.includes("mobile") || normalized.includes("invalid parameter")) {
+    return "formato de teléfono incorrecto o identificador SMS no aceptado";
+  }
+
+  if (normalized.includes("sender") || normalized.includes("not verified") || normalized.includes("not allowed")) {
+    return "sender email no verificado o no permitido";
+  }
+
+  return "error de Brevo sin clasificar";
+};
+
 const brevoFetch = async (path, options = {}) => {
   const apiKey = process.env.BREVO_API_KEY;
 
@@ -59,13 +85,17 @@ const brevoFetch = async (path, options = {}) => {
 
   if (!response.ok) {
     const text = await response.text();
+    const category = classifyBrevoError(response.status, text);
     console.error("Brevo API error", {
+      category,
       path,
       status: response.status,
       response: text,
       requestBody: options.body,
     });
-    throw new Error(`Brevo API error ${response.status}: ${text}`);
+    const error = new Error(`Brevo API error ${response.status}: ${text}`);
+    error.category = category;
+    throw error;
   }
 
   if (response.status === 204) return null;
@@ -142,7 +172,7 @@ const buildContactPayload = (lead) => {
   const listId = getListIdForType(lead.formType);
   const submittedAt = lead.submittedAt || new Date().toISOString();
   const phone = lead.phone || "";
-  const externalId = `${lead.formType || "Lead"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const externalId = phone ? `whatsapp:${phone}` : `${lead.formType || "Lead"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   if (!listId) {
     throw new Error(`Missing Brevo list id for ${lead.formType}`);
@@ -169,7 +199,6 @@ const buildContactPayload = (lead) => {
   if (lead.email) {
     payload.email = lead.email;
   } else if (phone) {
-    payload.sms = phone;
     payload.ext_id = externalId;
   } else {
     payload.ext_id = externalId;
@@ -184,6 +213,8 @@ const saveLead = async (lead) => {
     formType: lead.formType,
     hasEmail: Boolean(lead.email),
     phone: lead.phone,
+    extId: payload.ext_id,
+    hasSmsAttribute: Boolean(payload.attributes?.SMS),
     listIds: payload.listIds,
   });
 
@@ -258,6 +289,7 @@ const handlePost = async (request, response) => {
     notifications.push("admin");
   } catch (error) {
     console.error("Brevo admin notification error", {
+      category: classifyBrevoError(0, error.message),
       message: error.message,
       formType: lead.formType,
       email: lead.email,
@@ -271,6 +303,7 @@ const handlePost = async (request, response) => {
       notifications.push("confirmation");
     } catch (error) {
       console.error("Brevo confirmation email error", {
+        category: classifyBrevoError(0, error.message),
         message: error.message,
         email,
         formType: lead.formType,
@@ -321,11 +354,15 @@ export default async function handler(request, response) {
     return json(response, 405, { error: "Method not allowed" });
   } catch (error) {
     console.error("Lead endpoint error", {
+      category: classifyBrevoError(0, error.message),
       message: error.message,
       stack: error.stack,
       method: request.method,
       body: request.body,
     });
-    return json(response, 500, { error: error.message || "Unexpected error" });
+    return json(response, 500, {
+      error: error.message || "Unexpected error",
+      category: error.category || classifyBrevoError(0, error.message),
+    });
   }
 }
