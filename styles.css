@@ -302,7 +302,7 @@ li {
 
 .metric-card-top {
   top: 12px;
-  right: -44px;
+  right: -72px;
 }
 
 .metric-card-bottom {
@@ -930,7 +930,7 @@ textarea:focus {
 @media (max-width: 1180px) {
   .metric-card-top {
     top: 16px;
-    right: 0;
+    right: -44px;
   }
 }
 
@@ -955,7 +955,7 @@ textarea:focus {
 
   .metric-card-top {
     top: 18px;
-    right: 18px;
+    right: -32px;
   }
 
   .contact-copy {
