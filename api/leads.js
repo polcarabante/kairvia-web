@@ -318,7 +318,7 @@ const ensureContactAttributes = async () => {
       const alreadyExists = details.includes("already exists") || details.includes("duplicate") || details.includes("exists");
 
       if (!alreadyExists) {
-        console.error("Brevo attribute setup error", safeStringify({
+        console.error("Brevo attribute setup warning", safeStringify({
           name,
           type,
           status: error.status,
@@ -326,7 +326,6 @@ const ensureContactAttributes = async () => {
           responseBody: error.responseBody,
           message: error.message,
         }));
-        throw error;
       }
     }
   }));
