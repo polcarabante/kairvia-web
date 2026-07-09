@@ -443,8 +443,8 @@ export default async function handler(request, response) {
       return response.end();
     }
 
-    if (request.method === "POST") return handlePost(request, response);
-    if (request.method === "GET") return handleGet(request, response);
+    if (request.method === "POST") return await handlePost(request, response);
+    if (request.method === "GET") return await handleGet(request, response);
 
     response.setHeader("Allow", "GET, POST, OPTIONS");
     return json(response, 405, { error: "Method not allowed" });
