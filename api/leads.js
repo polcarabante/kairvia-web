@@ -78,7 +78,14 @@ const brevoFetch = async (path, options = {}) => {
   const apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey) {
-    throw new Error("Missing BREVO_API_KEY");
+    const error = new Error("Missing BREVO_API_KEY");
+    error.category = "API key incorrecta o ausente";
+    console.error("Brevo configuration error", JSON.stringify({
+      category: error.category,
+      brevoApiKeyExists: false,
+      path,
+    }));
+    throw error;
   }
 
   const response = await fetch(`${BREVO_API_URL}${path}`, {
@@ -226,12 +233,19 @@ const saveLead = async (lead) => {
   const payload = buildContactPayload(lead);
   const identifier = getContactIdentifier(lead);
   console.log("Saving Brevo lead", JSON.stringify({
+    brevoApiKeyExists: Boolean(process.env.BREVO_API_KEY),
     formType: lead.formType,
+    rawListIds: {
+      diagnostic: process.env.BREVO_DIAGNOSTIC_LIST_ID || null,
+      contact: process.env.BREVO_CONTACT_LIST_ID || null,
+      fundae: process.env.BREVO_FUNDAE_LIST_ID || null,
+    },
+    selectedListId: payload.listIds?.[0],
     hasEmail: Boolean(lead.email),
     phone: lead.phone,
     identifier,
     extId: payload.ext_id,
-    listIds: payload.listIds,
+    attributes: payload.attributes,
     payload,
   }));
 
@@ -317,6 +331,20 @@ const handlePost = async (request, response) => {
     areas: Array.isArray(body.areas) ? body.areas.join(", ") : normalizeText(body.areas),
     submittedAt: new Date().toISOString(),
   };
+
+  console.log("Lead endpoint received", JSON.stringify({
+    brevoApiKeyExists: Boolean(process.env.BREVO_API_KEY),
+    formType,
+    contactPreference,
+    hasEmail: Boolean(email),
+    normalizedPhone: phone,
+    listId: getListIdForType(formType),
+    rawListIds: {
+      diagnostic: process.env.BREVO_DIAGNOSTIC_LIST_ID || null,
+      contact: process.env.BREVO_CONTACT_LIST_ID || null,
+      fundae: process.env.BREVO_FUNDAE_LIST_ID || null,
+    },
+  }));
 
   await saveLead(lead);
 

@@ -97,12 +97,6 @@ document.addEventListener("keydown", (event) => {
 updateAreaMultiselect();
 
 const submitLead = async (payload) => {
-  const isLocalPreview = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-
-  if (isLocalPreview) {
-    return { ok: true, localPreview: true };
-  }
-
   const response = await fetch("/api/leads", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -110,16 +104,16 @@ const submitLead = async (payload) => {
   });
 
   if (!response.ok) {
-    let message = "No se pudo guardar el lead en Brevo";
+    let details = null;
 
     try {
-      const data = await response.json();
-      message = data.category ? `${data.category}: ${data.error || message}` : data.error || message;
+      details = await response.json();
     } catch (error) {
-      message = `${message}. Estado HTTP: ${response.status}`;
+      details = { status: response.status, error: "Respuesta no JSON del endpoint" };
     }
 
-    throw new Error(message);
+    console.error("Lead submission failed", details);
+    throw new Error("No se ha podido guardar la solicitud. Revisaremos la configuración del servidor.");
   }
 
   return response.json();
@@ -275,7 +269,8 @@ const bindFundaeModalEvents = () => {
       fundaeResultEmployee.textContent = `Esto equivale a unos ${formatCurrency(creditPerEmployee)} por empleado. Hemos guardado tus datos para contactar contigo por el canal indicado.`;
       fundaeResult.hidden = false;
     } catch (error) {
-      fundaeResultMain.textContent = `No se ha podido guardar la solicitud: ${error.message}`;
+      console.error("FUNDAE lead error", error);
+      fundaeResultMain.textContent = error.message;
       fundaeResultEmployee.textContent = "";
       fundaeResult.hidden = false;
     }
@@ -461,7 +456,8 @@ const bindDiagnosticModalEvents = () => {
         ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
         : "Solicitud enviada correctamente. Guardamos sus datos para contactarle por WhatsApp.";
     } catch (error) {
-      diagnosticStatus.textContent = `No se ha podido enviar la solicitud: ${error.message}`;
+      console.error("Diagnostic lead error", error);
+      diagnosticStatus.textContent = error.message;
       diagnosticStatus.classList.add("error");
     } finally {
       submitButton.disabled = false;
@@ -516,6 +512,7 @@ form?.addEventListener("submit", async (event) => {
       ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
       : "Solicitud enviada correctamente. Guardamos sus datos para contactarle.";
   } catch (error) {
-    formNote.textContent = `No se ha podido enviar la solicitud: ${error.message}`;
+    console.error("Contact lead error", error);
+    formNote.textContent = error.message;
   }
 });
