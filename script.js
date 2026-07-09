@@ -113,7 +113,7 @@ const submitLead = async (payload) => {
     }
 
     console.error("Lead submission failed", details);
-    throw new Error("No se ha podido guardar la solicitud. Revisaremos la configuración del servidor.");
+    throw new Error("Ha ocurrido un problema al enviar la solicitud. Por favor, inténtelo de nuevo en unos minutos.");
   }
 
   return response.json();

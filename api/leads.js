@@ -6,6 +6,34 @@ const json = (response, statusCode, body) => {
   response.end(JSON.stringify(body));
 };
 
+const safeStringify = (value) => {
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return JSON.stringify({ unserializable: true, message: error.message });
+  }
+};
+
+const parseRequestBody = (request) => {
+  const body = request.body;
+
+  if (!body) return {};
+  if (typeof body === "object" && !Buffer.isBuffer(body)) return body;
+
+  const raw = Buffer.isBuffer(body) ? body.toString("utf8") : String(body);
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error("Lead endpoint body parse error", safeStringify({
+      message: error.message,
+      rawBodyPreview: raw.slice(0, 500),
+    }));
+    return {};
+  }
+};
+
 const normalizeText = (value = "") => String(value || "").trim();
 
 const normalizeSpanishPhone = (value = "") => {
@@ -80,7 +108,7 @@ const brevoFetch = async (path, options = {}) => {
   if (!apiKey) {
     const error = new Error("Missing BREVO_API_KEY");
     error.category = "API key incorrecta o ausente";
-    console.error("Brevo configuration error", JSON.stringify({
+    console.error("Brevo configuration error", safeStringify({
       category: error.category,
       brevoApiKeyExists: false,
       path,
@@ -101,7 +129,7 @@ const brevoFetch = async (path, options = {}) => {
   if (!response.ok) {
     const text = await response.text();
     const category = classifyBrevoError(response.status, text);
-    console.error("Brevo API error", JSON.stringify({
+    console.error("Brevo API error", safeStringify({
       category,
       path,
       status: response.status,
@@ -232,7 +260,7 @@ const buildUpdatePayload = (lead) => ({
 const saveLead = async (lead) => {
   const payload = buildContactPayload(lead);
   const identifier = getContactIdentifier(lead);
-  console.log("Saving Brevo lead", JSON.stringify({
+  console.log("Saving Brevo lead", safeStringify({
     brevoApiKeyExists: Boolean(process.env.BREVO_API_KEY),
     formType: lead.formType,
     rawListIds: {
@@ -262,7 +290,7 @@ const saveLead = async (lead) => {
 
     const updatePayload = buildUpdatePayload(lead);
     const encodedIdentifier = encodeURIComponent(identifier);
-    console.error("Brevo contact exists, updating contact", JSON.stringify({
+    console.error("Brevo contact exists, updating contact", safeStringify({
       originalCategory: error.category,
       originalMessage: error.message,
       identifier,
@@ -300,7 +328,7 @@ const listContactsFromList = async (listId) => {
 };
 
 const handlePost = async (request, response) => {
-  const body = request.body || {};
+  const body = parseRequestBody(request);
   const formType = normalizeText(body.formType);
   const contactPreference = normalizeText(body.contactPreference || body.contactMethod);
   const email = normalizeText(body.email).toLowerCase();
@@ -332,7 +360,8 @@ const handlePost = async (request, response) => {
     submittedAt: new Date().toISOString(),
   };
 
-  console.log("Lead endpoint received", JSON.stringify({
+  console.log("Lead endpoint received", safeStringify({
+    method: request.method,
     brevoApiKeyExists: Boolean(process.env.BREVO_API_KEY),
     formType,
     contactPreference,
@@ -354,7 +383,7 @@ const handlePost = async (request, response) => {
     await sendAdminNotification(lead);
     notifications.push("admin");
   } catch (error) {
-    console.error("Brevo admin notification error", JSON.stringify({
+    console.error("Brevo admin notification error", safeStringify({
       category: error.category || classifyBrevoError(0, error.message),
       message: error.message,
       formType: lead.formType,
@@ -368,7 +397,7 @@ const handlePost = async (request, response) => {
       await sendConfirmationEmail({ name, email });
       notifications.push("confirmation");
     } catch (error) {
-      console.error("Brevo confirmation email error", JSON.stringify({
+      console.error("Brevo confirmation email error", safeStringify({
         category: error.category || classifyBrevoError(0, error.message),
         message: error.message,
         email,
@@ -420,7 +449,7 @@ export default async function handler(request, response) {
     response.setHeader("Allow", "GET, POST, OPTIONS");
     return json(response, 405, { error: "Method not allowed" });
   } catch (error) {
-    console.error("Lead endpoint error", JSON.stringify({
+    console.error("Lead endpoint error", safeStringify({
       category: error.category || classifyBrevoError(0, error.message),
       message: error.message,
       stack: error.stack,
@@ -428,8 +457,7 @@ export default async function handler(request, response) {
       body: request.body,
     }));
     return json(response, 500, {
-      error: error.message || "Unexpected error",
-      category: error.category || classifyBrevoError(0, error.message),
+      error: "Ha ocurrido un problema al enviar la solicitud. Por favor, inténtelo de nuevo en unos minutos.",
     });
   }
 }
