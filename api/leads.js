@@ -217,15 +217,15 @@ const sendAdminNotification = async (lead) => {
 
   const htmlContent = `
     <h2>Nuevo lead Kairvia</h2>
-    <p><strong>Fecha de envío:</strong> ${formatDisplayDate(lead.submittedAt)}</p>
     <p><strong>Nombre:</strong> ${lead.name || "No indicado"}</p>
-    <p><strong>Empresa:</strong> ${lead.company || "No indicada"}</p>
+    <p><strong>Empresa:</strong> ${lead.company || "No indicado"}</p>
     <p><strong>Email:</strong> ${lead.email || "No indicado"}</p>
-    <p><strong>WhatsApp / Teléfono:</strong> ${lead.phone || "No indicado"}</p>
-    <p><strong>Preferencia de contacto:</strong> ${lead.contactPreference || "No indicada"}</p>
-    <p><strong>Áreas:</strong> ${lead.areas || "No indicadas"}</p>
-    <p><strong>Mensaje:</strong></p>
-    <p>${(lead.message || "Sin mensaje").replace(/\n/g, "<br>")}</p>
+    <p><strong>Teléfono:</strong> ${lead.phone || "No indicado"}</p>
+    <p><strong>Preferencia de contacto:</strong> ${lead.contactPreference || "No indicado"}</p>
+    <p><strong>Fecha de envío:</strong> ${formatDisplayDate(lead.submittedAt)}</p>
+    <p><strong>Estado:</strong> Nuevo</p>
+    <p><strong>Mensaje:</strong> ${(lead.message || "No indicado").replace(/\n/g, "<br>")}</p>
+    <p><strong>Áreas:</strong> ${lead.areas || "No indicado"}</p>
   `;
 
   await brevoFetch("/smtp/email", {
@@ -252,30 +252,46 @@ const validateBrevoListId = (formType) => {
   return listId;
 };
 
-const getContactIdentifier = (lead) => lead.email || (lead.phone ? `whatsapp:${lead.phone}` : "");
+const getContactIdentifier = (lead) => lead.email || (lead.phone && lead.contactPreference === "WhatsApp" ? `whatsapp:${lead.phone}` : "");
+
+const addAttribute = (attributes, key, value) => {
+  if (value !== undefined && value !== null && String(value).trim() !== "") {
+    attributes[key] = value;
+  }
+};
 
 const buildContactPayload = (lead) => {
   const listId = validateBrevoListId(lead.formType);
   const phone = lead.phone || "";
+  const isWhatsappLead = lead.contactPreference === "WhatsApp";
+  const attributes = {};
+
+  addAttribute(attributes, "NOMBRE", lead.name);
+  addAttribute(attributes, "EMPRESA", lead.company);
+  addAttribute(attributes, "PREFERENCIA_CONTACTO", lead.contactPreference || (lead.email ? "Correo electrónico" : ""));
+  addAttribute(attributes, "FECHA_ENVIO", lead.submittedAt || getBrevoDate());
+  addAttribute(attributes, "ESTADO", "Nuevo");
+  addAttribute(attributes, "MENSAJE", lead.message);
+  addAttribute(attributes, "AREAS", lead.areas);
+
+  if (phone) {
+    addAttribute(attributes, "TELEFONO", phone);
+    addAttribute(attributes, "SMS", phone);
+
+    if (isWhatsappLead) {
+      addAttribute(attributes, "WHATSAPP", phone);
+    }
+  }
+
   const payload = {
     updateEnabled: true,
     listIds: [listId],
-    attributes: {
-      NOMBRE: lead.name || "",
-      EMPRESA: lead.company || "",
-      TELEFONO: phone,
-      WHATSAPP: phone,
-      PREFERENCIA_CONTACTO: lead.contactPreference || "",
-      FECHA_ENVIO: lead.submittedAt || getBrevoDate(),
-      AREAS: lead.areas || "",
-      ESTADO: "Nuevo",
-      MENSAJE: lead.message || "",
-    },
+    attributes,
   };
 
   if (lead.email) {
     payload.email = lead.email;
-  } else if (phone) {
+  } else if (isWhatsappLead && phone) {
     payload.ext_id = `whatsapp:${phone}`;
   } else {
     payload.ext_id = `${lead.formType || "Lead"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -294,6 +310,7 @@ const requiredContactAttributes = [
   { name: "EMPRESA", type: "text" },
   { name: "WHATSAPP", type: "text" },
   { name: "TELEFONO", type: "text" },
+  { name: "SMS", type: "text" },
   { name: "PREFERENCIA_CONTACTO", type: "text" },
   { name: "FECHA_ENVIO", type: "date" },
   { name: "AREAS", type: "text" },
@@ -393,7 +410,8 @@ const mapContactToLead = (contact, sourceList = "") => {
     name: attrs.NOMBRE || "",
     company: attrs.EMPRESA || "",
     email: contact.email || "",
-    whatsapp: attrs.WHATSAPP || attrs.TELEFONO || "",
+    phone: attrs.TELEFONO || attrs.SMS || "",
+    whatsapp: attrs.WHATSAPP || attrs.TELEFONO || attrs.SMS || "",
     contactPreference: attrs.PREFERENCIA_CONTACTO || "",
     message: attrs.MENSAJE || "",
     areas: attrs.AREAS || "",
@@ -410,7 +428,7 @@ const listContactsFromList = async (listId, sourceList) => {
 const handlePost = async (request, response) => {
   const body = parseRequestBody(request);
   const formType = normalizeText(body.formType);
-  const contactPreference = normalizeContactPreference(body.contactPreference || body.contactMethod);
+  const contactPreference = normalizeContactPreference(body.contactPreference || body.contactMethod || (normalizeText(body.email) ? "Correo electrónico" : ""));
   const email = normalizeText(body.email).toLowerCase();
   const phone = normalizeSpanishPhone(body.phone || body.whatsapp || body.telefono);
   const name = normalizeText(body.name || body.nombre);
@@ -434,7 +452,7 @@ const handlePost = async (request, response) => {
     email,
     phone,
     company,
-    contactPreference,
+    contactPreference: contactPreference || (email ? "Correo electrónico" : ""),
     message: normalizeText(body.message || body.mensaje),
     areas: Array.isArray(body.areas) ? body.areas.join(", ") : normalizeText(body.areas),
     submittedAt: getBrevoDate(),
