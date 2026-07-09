@@ -217,12 +217,12 @@ const sendAdminNotification = async (lead) => {
 
   const htmlContent = `
     <h2>Nuevo lead Kairvia</h2>
-    <p><strong>Fecha:</strong> ${formatDisplayDate(lead.submittedAt)}</p>
+    <p><strong>Fecha de envío:</strong> ${formatDisplayDate(lead.submittedAt)}</p>
     <p><strong>Nombre:</strong> ${lead.name || "No indicado"}</p>
     <p><strong>Empresa:</strong> ${lead.company || "No indicada"}</p>
     <p><strong>Email:</strong> ${lead.email || "No indicado"}</p>
-    <p><strong>WhatsApp/Teléfono:</strong> ${lead.phone || "No indicado"}</p>
-    <p><strong>Preferencia:</strong> ${lead.contactPreference || "No indicada"}</p>
+    <p><strong>WhatsApp / Teléfono:</strong> ${lead.phone || "No indicado"}</p>
+    <p><strong>Preferencia de contacto:</strong> ${lead.contactPreference || "No indicada"}</p>
     <p><strong>Áreas:</strong> ${lead.areas || "No indicadas"}</p>
     <p><strong>Mensaje:</strong></p>
     <p>${(lead.message || "Sin mensaje").replace(/\n/g, "<br>")}</p>

@@ -51,7 +51,7 @@ const updateAreaMultiselect = () => {
 
   if (areaSummary) {
     if (selectedAreas.length === 0) {
-      areaSummary.textContent = "Selecciona una o varias áreas";
+      areaSummary.textContent = "Seleccione una o varias áreas";
     } else if (selectedAreas.length <= 3) {
       areaSummary.textContent = selectedAreas.join(", ");
     } else {
@@ -144,9 +144,9 @@ const getFundaeModalMarkup = () => `
     <section class="fundae-modal-panel" role="dialog" aria-modal="true" aria-labelledby="fundae-modal-title">
       <button class="fundae-modal-close" type="button" aria-label="Cerrar calculadora" data-fundae-close>×</button>
       <p class="eyebrow">Calculadora FUNDAE</p>
-      <h2 id="fundae-modal-title">Calcula el crédito formativo de tu empresa</h2>
+      <h2 id="fundae-modal-title">Calcule el crédito formativo de su empresa</h2>
       <p class="fundae-modal-copy">
-        Introduce los datos de tu empresa y obtén una estimación inmediata del crédito disponible para formación.
+        Introduzca los datos de su empresa y obtenga una estimación inmediata del crédito disponible para formación.
       </p>
       <form class="fundae-calculator-form">
         <fieldset class="contact-method full">
@@ -196,9 +196,9 @@ const getFundaeModalMarkup = () => `
         <p class="fundae-result-main"></p>
         <p class="fundae-result-employee"></p>
         <p class="fundae-result-message">
-          Te ayudamos a aprovechar hasta el 100% del crédito FUNDAE disponible para formar a tu equipo en inteligencia artificial, acompañándote durante todo el proceso.
+          Le ayudamos a aprovechar hasta el 100% del crédito FUNDAE disponible para formar a su equipo en inteligencia artificial, acompañándole durante todo el proceso.
         </p>
-        <button class="btn btn-primary" type="button" data-fundae-contact>Quiero que me ayudéis a gestionarlo</button>
+        <button class="btn btn-primary" type="button" data-fundae-contact>Quiero que me ayuden a gestionarlo</button>
       </div>
     </section>
   </div>
@@ -265,8 +265,8 @@ const bindFundaeModalEvents = () => {
 
     try {
       await submitLead(leadPayload);
-      fundaeResultMain.textContent = `Tu empresa podría disponer de aproximadamente ${formatCurrency(totalCredit)} de crédito FUNDAE.`;
-      fundaeResultEmployee.textContent = `Esto equivale a unos ${formatCurrency(creditPerEmployee)} por empleado. Hemos guardado tus datos para contactar contigo por el canal indicado.`;
+      fundaeResultMain.textContent = `Su empresa podría disponer de aproximadamente ${formatCurrency(totalCredit)} de crédito FUNDAE.`;
+      fundaeResultEmployee.textContent = `Esto equivale a unos ${formatCurrency(creditPerEmployee)} por empleado. Hemos guardado sus datos para contactar con usted por el canal indicado.`;
       fundaeResult.hidden = false;
     } catch (error) {
       console.error("FUNDAE lead error", error);
@@ -330,7 +330,7 @@ const getDiagnosticModalMarkup = () => `
     <section class="fundae-modal-panel diagnostic-modal-panel" role="dialog" aria-modal="true" aria-labelledby="diagnostic-modal-title">
       <button class="fundae-modal-close" type="button" aria-label="Cerrar diagnóstico" data-diagnostic-close>×</button>
       <p class="eyebrow">Diagnóstico gratuito</p>
-      <h2 id="diagnostic-modal-title">Solicita tu diagnóstico gratuito</h2>
+      <h2 id="diagnostic-modal-title">Solicite su diagnóstico gratuito</h2>
       <p class="fundae-modal-copy">
         Déjenos sus datos y prepararemos un diagnóstico gratuito para detectar oportunidades de automatización con IA en su empresa. Le contactaremos lo antes posible.
       </p>
@@ -454,7 +454,7 @@ const bindDiagnosticModalEvents = () => {
       updateDiagnosticContactFields(diagnosticForm);
       diagnosticStatus.textContent = payload.email
         ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
-        : "Solicitud enviada correctamente. Guardamos sus datos para contactarle por WhatsApp.";
+        : "Solicitud enviada correctamente. Hemos guardado sus datos para contactarle por WhatsApp.";
     } catch (error) {
       console.error("Diagnostic lead error", error);
       diagnosticStatus.textContent = error.message;
@@ -485,7 +485,7 @@ form?.addEventListener("submit", async (event) => {
   const selectedAreas = getSelectedAreas();
 
   if (areaCheckboxes.length && selectedAreas.length === 0) {
-    formNote.textContent = "Selecciona al menos un área que quieras mejorar.";
+    formNote.textContent = "Seleccione al menos un área que quiera mejorar.";
     areaToggle?.focus();
     return;
   }
@@ -510,7 +510,7 @@ form?.addEventListener("submit", async (event) => {
     updateAreaMultiselect();
     formNote.textContent = payload.email
       ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
-      : "Solicitud enviada correctamente. Guardamos sus datos para contactarle.";
+      : "Solicitud enviada correctamente. Hemos guardado sus datos para contactarle.";
   } catch (error) {
     console.error("Contact lead error", error);
     formNote.textContent = error.message;
