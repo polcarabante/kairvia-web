@@ -165,6 +165,8 @@ const brevoFetch = async (path, options = {}) => {
     }));
     const error = new Error(`Brevo API error ${response.status}: ${text}`);
     error.category = category;
+    error.status = response.status;
+    error.responseBody = text;
     throw error;
   }
 
@@ -287,6 +289,51 @@ const buildUpdatePayload = (lead) => ({
   listIds: [validateBrevoListId(lead.formType)],
 });
 
+const requiredContactAttributes = [
+  { name: "NOMBRE", type: "text" },
+  { name: "EMPRESA", type: "text" },
+  { name: "WHATSAPP", type: "text" },
+  { name: "TELEFONO", type: "text" },
+  { name: "PREFERENCIA_CONTACTO", type: "text" },
+  { name: "FECHA_ENVIO", type: "date" },
+  { name: "AREAS", type: "text" },
+  { name: "ESTADO", type: "text" },
+  { name: "MENSAJE", type: "text" },
+];
+
+let attributesReady = false;
+
+const ensureContactAttributes = async () => {
+  if (attributesReady) return;
+
+  await Promise.all(requiredContactAttributes.map(async ({ name, type }) => {
+    try {
+      await brevoFetch(`/contacts/attributes/normal/${encodeURIComponent(name)}`, {
+        method: "POST",
+        body: JSON.stringify({ type }),
+      });
+      console.log("Brevo attribute created", safeStringify({ name, type }));
+    } catch (error) {
+      const details = `${error.message || ""} ${error.responseBody || ""}`.toLowerCase();
+      const alreadyExists = details.includes("already exists") || details.includes("duplicate") || details.includes("exists");
+
+      if (!alreadyExists) {
+        console.error("Brevo attribute setup error", safeStringify({
+          name,
+          type,
+          status: error.status,
+          category: error.category,
+          responseBody: error.responseBody,
+          message: error.message,
+        }));
+        throw error;
+      }
+    }
+  }));
+
+  attributesReady = true;
+};
+
 const saveLead = async (lead) => {
   const payload = buildContactPayload(lead);
   const identifier = getContactIdentifier(lead);
@@ -306,6 +353,8 @@ const saveLead = async (lead) => {
     attributes: payload.attributes,
     payload,
   }));
+
+  await ensureContactAttributes();
 
   try {
     await brevoFetch("/contacts", {
