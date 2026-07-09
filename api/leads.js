@@ -36,6 +36,33 @@ const parseRequestBody = (request) => {
 
 const normalizeText = (value = "") => String(value || "").trim();
 
+const getBrevoDate = (date = new Date()) => date.toISOString().slice(0, 10);
+
+const formatDisplayDate = (value = "") => {
+  const raw = normalizeText(value);
+  if (!raw) return "";
+
+  const datePart = raw.includes("T") ? raw.slice(0, 10) : raw;
+  const match = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!match) return raw;
+
+  return `${match[3]}-${match[2]}-${match[1].slice(2)}`;
+};
+
+const normalizeContactPreference = (value = "") => {
+  const preference = normalizeText(value);
+  const normalized = preference.toLowerCase();
+
+  if (normalized === "correo" || normalized === "email" || normalized === "correo electrónico" || normalized === "correo electronico") {
+    return "Correo electrónico";
+  }
+
+  if (normalized === "whatsapp") return "WhatsApp";
+
+  return preference;
+};
+
 const normalizeSpanishPhone = (value = "") => {
   const raw = normalizeText(value);
 
@@ -92,7 +119,7 @@ const classifyBrevoError = (status, text = "") => {
   }
 
   if (normalized.includes("phone") || normalized.includes("sms") || normalized.includes("mobile") || normalized.includes("invalid parameter")) {
-    return "formato de teléfono incorrecto o identificador SMS no aceptado";
+    return "formato de teléfono incorrecto o identificador externo no aceptado";
   }
 
   if (normalized.includes("sender") || normalized.includes("not verified") || normalized.includes("not allowed")) {
@@ -188,7 +215,7 @@ const sendAdminNotification = async (lead) => {
 
   const htmlContent = `
     <h2>Nuevo lead Kairvia</h2>
-    <p><strong>Tipo:</strong> ${lead.formType}</p>
+    <p><strong>Fecha:</strong> ${formatDisplayDate(lead.submittedAt)}</p>
     <p><strong>Nombre:</strong> ${lead.name || "No indicado"}</p>
     <p><strong>Empresa:</strong> ${lead.company || "No indicada"}</p>
     <p><strong>Email:</strong> ${lead.email || "No indicado"}</p>
@@ -205,7 +232,7 @@ const sendAdminNotification = async (lead) => {
       sender: { name: senderName, email: senderEmail },
       to: [{ email: adminEmail, name: "Kairvia" }],
       replyTo: lead.email ? { email: lead.email, name: lead.name || "Lead" } : undefined,
-      subject: `Nuevo lead ${lead.formType}: ${lead.name || lead.company || "sin nombre"}`,
+      subject: `Nuevo lead Kairvia: ${lead.name || lead.company || "sin nombre"}`,
       htmlContent,
     }),
   });
@@ -235,6 +262,11 @@ const buildContactPayload = (lead) => {
       NOMBRE: lead.name || "",
       EMPRESA: lead.company || "",
       TELEFONO: phone,
+      WHATSAPP: phone,
+      PREFERENCIA_CONTACTO: lead.contactPreference || "",
+      FECHA_ENVIO: lead.submittedAt || getBrevoDate(),
+      AREAS: lead.areas || "",
+      ESTADO: "Nuevo",
       MENSAJE: lead.message || "",
     },
   };
@@ -243,8 +275,6 @@ const buildContactPayload = (lead) => {
     payload.email = lead.email;
   } else if (phone) {
     payload.ext_id = `whatsapp:${phone}`;
-    payload.attributes.WHATSAPP = phone;
-    payload.attributes.SMS = phone;
   } else {
     payload.ext_id = `${lead.formType || "Lead"}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
@@ -304,16 +334,18 @@ const saveLead = async (lead) => {
   }
 };
 
-const mapContactToLead = (contact) => {
+const mapContactToLead = (contact, sourceList = "") => {
   const attrs = contact.attributes || {};
+  const rawDate = attrs.FECHA_ENVIO || contact.modifiedAt || contact.createdAt || "";
   return {
     id: contact.id || contact.email || contact.ext_id,
-    date: attrs.FECHA_ENVIO || contact.modifiedAt || contact.createdAt || "",
-    formType: attrs.TIPO_FORMULARIO || "",
+    date: formatDisplayDate(rawDate),
+    dateRaw: rawDate,
+    sourceList,
     name: attrs.NOMBRE || "",
     company: attrs.EMPRESA || "",
     email: contact.email || "",
-    whatsapp: attrs.WHATSAPP || attrs.SMS || attrs.TELEFONO || "",
+    whatsapp: attrs.WHATSAPP || attrs.TELEFONO || "",
     contactPreference: attrs.PREFERENCIA_CONTACTO || "",
     message: attrs.MENSAJE || "",
     areas: attrs.AREAS || "",
@@ -321,16 +353,16 @@ const mapContactToLead = (contact) => {
   };
 };
 
-const listContactsFromList = async (listId) => {
+const listContactsFromList = async (listId, sourceList) => {
   if (!listId) return [];
   const result = await brevoFetch(`/contacts/lists/${listId}/contacts?limit=500&offset=0&sort=desc`);
-  return result.contacts || [];
+  return (result.contacts || []).map((contact) => ({ ...contact, __sourceList: sourceList }));
 };
 
 const handlePost = async (request, response) => {
   const body = parseRequestBody(request);
   const formType = normalizeText(body.formType);
-  const contactPreference = normalizeText(body.contactPreference || body.contactMethod);
+  const contactPreference = normalizeContactPreference(body.contactPreference || body.contactMethod);
   const email = normalizeText(body.email).toLowerCase();
   const phone = normalizeSpanishPhone(body.phone || body.whatsapp || body.telefono);
   const name = normalizeText(body.name || body.nombre);
@@ -340,7 +372,7 @@ const handlePost = async (request, response) => {
     return json(response, 400, { error: "Missing required lead fields" });
   }
 
-  if (contactPreference === "Correo" && !email) {
+  if (contactPreference === "Correo electrónico" && !email) {
     return json(response, 400, { error: "Email is required for email preference" });
   }
 
@@ -357,7 +389,7 @@ const handlePost = async (request, response) => {
     contactPreference,
     message: normalizeText(body.message || body.mensaje),
     areas: Array.isArray(body.areas) ? body.areas.join(", ") : normalizeText(body.areas),
-    submittedAt: new Date().toISOString(),
+    submittedAt: getBrevoDate(),
   };
 
   console.log("Lead endpoint received", safeStringify({
@@ -416,22 +448,22 @@ const handleGet = async (request, response) => {
     return json(response, 401, { error: "Unauthorized" });
   }
 
-  const listIds = [
-    parseBrevoListId(process.env.BREVO_DIAGNOSTIC_LIST_ID),
-    parseBrevoListId(process.env.BREVO_CONTACT_LIST_ID),
-    parseBrevoListId(process.env.BREVO_FUNDAE_LIST_ID),
-  ].filter(Boolean);
+  const lists = [
+    { id: parseBrevoListId(process.env.BREVO_DIAGNOSTIC_LIST_ID), sourceList: "Diagnóstico" },
+    { id: parseBrevoListId(process.env.BREVO_CONTACT_LIST_ID), sourceList: "Contacto" },
+    { id: parseBrevoListId(process.env.BREVO_FUNDAE_LIST_ID), sourceList: "FUNDAE" },
+  ].filter((list) => Boolean(list.id));
 
-  const contacts = (await Promise.all(listIds.map(listContactsFromList))).flat();
+  const contacts = (await Promise.all(lists.map((list) => listContactsFromList(list.id, list.sourceList)))).flat();
   const seen = new Map();
 
   contacts.forEach((contact) => {
-    const lead = mapContactToLead(contact);
+    const lead = mapContactToLead(contact, contact.__sourceList);
     const key = lead.id || `${lead.email}-${lead.date}`;
     seen.set(key, lead);
   });
 
-  const leads = Array.from(seen.values()).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const leads = Array.from(seen.values()).sort((a, b) => String(b.dateRaw).localeCompare(String(a.dateRaw)));
   return json(response, 200, { leads });
 };
 

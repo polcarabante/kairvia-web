@@ -254,7 +254,7 @@ const bindFundaeModalEvents = () => {
     const contactMethod = String(formData.get("contact_method") || "whatsapp");
     const leadPayload = {
       formType: "FUNDAE",
-      contactPreference: contactMethod === "email" ? "Correo" : "WhatsApp",
+      contactPreference: contactMethod === "email" ? "Correo electrónico" : "WhatsApp",
       name: String(formData.get("name") || "").trim(),
       company: String(formData.get("company") || "").trim(),
       email: String(formData.get("email") || "").trim(),
@@ -435,7 +435,7 @@ const bindDiagnosticModalEvents = () => {
     const contactMethod = String(formData.get("contact_method") || "whatsapp");
     const payload = {
       formType: "Diagnóstico",
-      contactPreference: contactMethod === "email" ? "Correo" : "WhatsApp",
+      contactPreference: contactMethod === "email" ? "Correo electrónico" : "WhatsApp",
       name: String(formData.get("name") || "").trim(),
       company: String(formData.get("company") || "").trim(),
       phone: String(formData.get("whatsapp") || "").trim(),
@@ -493,7 +493,7 @@ form?.addEventListener("submit", async (event) => {
   const formData = new FormData(form);
   const payload = {
     formType: "Contacto",
-    contactPreference: "Correo",
+    contactPreference: "Correo electrónico",
     name: String(formData.get("nombre") || "").trim(),
     company: String(formData.get("empresa") || "").trim(),
     email: String(formData.get("email") || "").trim(),

@@ -171,14 +171,13 @@
             <thead>
               <tr>
                 <th>Fecha</th>
-                <th>Tipo</th>
                 <th>Nombre</th>
                 <th>Empresa</th>
                 <th>Email</th>
-                <th>WhatsApp</th>
+                <th>WhatsApp/Teléfono</th>
                 <th>Preferencia</th>
                 <th>Mensaje</th>
-                <th>Estado</th>
+                <th>Áreas</th>
               </tr>
             </thead>
             <tbody id="leads-body"></tbody>
@@ -206,8 +205,9 @@
       const matchesFilter = (lead) => {
         if (currentFilter === 'Todos') return true;
         if (currentFilter === 'Nuevos') return lead.status === 'Nuevo';
-        if (currentFilter === 'WhatsApp' || currentFilter === 'Correo') return lead.contactPreference === currentFilter;
-        return lead.formType === currentFilter;
+        if (currentFilter === 'WhatsApp') return lead.contactPreference === 'WhatsApp';
+        if (currentFilter === 'Correo') return lead.contactPreference === 'Correo electrónico' || lead.contactPreference === 'Correo';
+        return lead.sourceList === currentFilter;
       };
 
       const renderLeads = () => {
@@ -216,14 +216,13 @@
         leadsBody.innerHTML = filtered.map((lead) => `
           <tr>
             <td>${escapeHtml(lead.date)}</td>
-            <td>${escapeHtml(lead.formType)}</td>
             <td>${escapeHtml(lead.name)}</td>
             <td>${escapeHtml(lead.company)}</td>
             <td>${escapeHtml(lead.email)}</td>
             <td>${escapeHtml(lead.whatsapp)}</td>
             <td>${escapeHtml(lead.contactPreference)}</td>
             <td>${escapeHtml(lead.message)}</td>
-            <td>${escapeHtml(lead.status)}</td>
+            <td>${escapeHtml(lead.areas)}</td>
           </tr>
         `).join('');
       };
