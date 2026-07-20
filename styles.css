@@ -109,10 +109,15 @@ button { cursor: pointer; }
 .hero-sticky::before {
   content: "";
   position: absolute;
-  inset: -18% 0 auto;
-  height: 70%;
-  background: radial-gradient(circle at center, rgba(17,102,241,.24), transparent 56%);
+  left: 50%;
+  top: clamp(-110px, -10vh, -70px);
+  width: min(760px, 78vh, 82vw);
+  height: min(760px, 78vh, 82vw);
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(245,255,255,.11) 0 8%, rgba(138,247,239,.12) 18%, rgba(17,102,241,.2) 34%, rgba(17,102,241,.08) 52%, transparent 72%);
   pointer-events: none;
+  z-index: 0;
 }
 .hero-glow {
   position: absolute;
@@ -221,7 +226,7 @@ p, li { color: var(--muted); line-height: 1.65; }
 .luminous-horizon {
   position: absolute;
   left: 50%;
-  bottom: clamp(-230px, -20vh, -150px);
+  bottom: clamp(-195px, -17vh, -115px);
   width: min(1280px, 118vw);
   height: clamp(320px, 46vh, 460px);
   transform: translateX(-50%) translateY(calc(54px - var(--hero-progress, 0) * 36px)) scale(calc(.98 + var(--hero-progress, 0) * .06));
@@ -249,7 +254,32 @@ p, li { color: var(--muted); line-height: 1.65; }
   mask-image: linear-gradient(180deg, rgba(0,0,0,.92), rgba(0,0,0,.38) 42%, transparent 86%);
   animation: arcPulse 5.2s ease-in-out infinite alternate;
 }
-.luminous-horizon::after { content: none; }
+.luminous-horizon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from 244deg at 50% 100%,
+    transparent 0deg,
+    transparent 12deg,
+    rgba(17,102,241,.18) 16deg,
+    rgba(18,183,176,.56) 20deg,
+    rgba(138,247,239,.92) 24deg,
+    rgba(245,255,255,.95) 27deg,
+    rgba(138,247,239,.7) 30deg,
+    rgba(17,102,241,.22) 35deg,
+    transparent 42deg,
+    transparent 360deg);
+  clip-path: inset(0 0 44% 0);
+  -webkit-mask-image: radial-gradient(ellipse at center bottom, transparent 0 68%, #000 69.2% 72.2%, transparent 73.4%);
+  mask-image: radial-gradient(ellipse at center bottom, transparent 0 68%, #000 69.2% 72.2%, transparent 73.4%);
+  opacity: .88;
+  transform-origin: 50% 100%;
+  transform: rotate(-26deg);
+  animation: arcGlint 7.6s ease-in-out infinite;
+  will-change: transform;
+}
 .dashboard-shell {
   position: relative;
   width: min(1180px, 92vw);
@@ -444,6 +474,7 @@ textarea { resize: vertical; min-height: 132px; }
 @keyframes titleLineReveal { to { transform: translateY(0); } }
 @keyframes arcEnter { from { opacity: 0; transform: translateX(-50%) translateY(92px) scale(.9); } }
 @keyframes arcPulse { to { box-shadow: 0 -38px 130px rgba(18,183,176,.3), inset 0 42px 108px rgba(17,102,241,.18); } }
+@keyframes arcGlint { 0% { transform: rotate(-26deg); } 50% { transform: rotate(26deg); } 100% { transform: rotate(-26deg); } }
 @keyframes heroHaloDrift { to { filter: hue-rotate(8deg) brightness(1.1); transform: translateY(calc(24px - var(--hero-progress, 0) * 18px)) scale(1.04); } }
 @keyframes dashboardPartIn { to { opacity: 1; transform: translateY(0); } }
 @keyframes chartGrow { to { transform: scaleY(1); } }
@@ -499,7 +530,7 @@ textarea { resize: vertical; min-height: 132px; }
   .hero-actions, .contact-method-options { flex-direction: column; grid-template-columns: 1fr; align-items: stretch; }
   .btn { width: 100%; text-align: center; }
   .hero-stage { inset: 0; }
-  .luminous-horizon { width: 136vw; height: 310px; bottom: -150px; }
+  .luminous-horizon { width: 136vw; height: 310px; bottom: -120px; }
   .dashboard-shell {
     width: calc(100vw - 24px);
     min-height: auto;
@@ -606,11 +637,18 @@ textarea { resize: vertical; min-height: 132px; }
 
   .luminous-horizon {
     bottom: auto;
-    top: -138px;
+    top: -168px;
     width: 136vw;
     height: 310px;
     transform: translateX(-50%) scale(1);
     z-index: 0;
+  }
+
+  .luminous-horizon::after {
+    opacity: .68;
+    clip-path: inset(0 0 44% 0);
+    -webkit-mask-image: radial-gradient(ellipse at center bottom, transparent 0 68.5%, #000 70% 72.4%, transparent 73.4%);
+    mask-image: radial-gradient(ellipse at center bottom, transparent 0 68.5%, #000 70% 72.4%, transparent 73.4%);
   }
 
   .dashboard-shell {
