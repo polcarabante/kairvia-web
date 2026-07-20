@@ -128,7 +128,7 @@ button { cursor: pointer; }
 }
 .hero-content {
   position: absolute;
-  top: clamp(96px, 14vh, 132px);
+  top: clamp(72px, 10vh, 104px);
   left: 50%;
   width: min(980px, calc(100% - 32px));
   text-align: center;
@@ -221,10 +221,10 @@ p, li { color: var(--muted); line-height: 1.65; }
 .luminous-horizon {
   position: absolute;
   left: 50%;
-  bottom: clamp(36px, 7.5vh, 74px);
+  bottom: clamp(-230px, -20vh, -150px);
   width: min(1280px, 118vw);
   height: clamp(320px, 46vh, 460px);
-  transform: translateX(-50%) translateY(calc(26px - var(--hero-progress, 0) * 16px)) scale(calc(.98 + var(--hero-progress, 0) * .07));
+  transform: translateX(-50%) translateY(calc(54px - var(--hero-progress, 0) * 36px)) scale(calc(.98 + var(--hero-progress, 0) * .06));
   border-radius: 50% 50% 0 0;
   background:
     radial-gradient(ellipse at center bottom, rgba(2,9,18,.94) 0 36%, rgba(17,102,241,.18) 46%, transparent 70%),
@@ -276,7 +276,7 @@ p, li { color: var(--muted); line-height: 1.65; }
   filter: none;
   transform-origin: center center;
   transform:
-    translateY(calc(455px - var(--hero-progress, 0) * 585px))
+    translateY(calc(720px - var(--hero-progress, 0) * 890px))
     scale(calc(.86 + var(--hero-progress, 0) * .14))
     rotateX(calc(4deg - var(--hero-progress, 0) * 4deg + var(--hero-tilt-x, 0deg)))
     rotateY(var(--hero-tilt-y, 0deg));
@@ -493,7 +493,7 @@ textarea { resize: vertical; min-height: 132px; }
   .hero-actions, .contact-method-options { flex-direction: column; grid-template-columns: 1fr; align-items: stretch; }
   .btn { width: 100%; text-align: center; }
   .hero-stage { inset: 0; }
-  .luminous-horizon { width: 136vw; height: 310px; bottom: 46px; }
+  .luminous-horizon { width: 136vw; height: 310px; bottom: -150px; }
   .dashboard-shell {
     width: calc(100vw - 24px);
     min-height: auto;
@@ -503,7 +503,7 @@ textarea { resize: vertical; min-height: 132px; }
     opacity: 1;
     filter: none;
     transform:
-      translateY(calc(410px - var(--hero-progress, 0) * 500px))
+      translateY(calc(620px - var(--hero-progress, 0) * 710px))
       scale(calc(.84 + var(--hero-progress, 0) * .16))
       rotateX(calc(4deg - var(--hero-progress, 0) * 4deg));
   }

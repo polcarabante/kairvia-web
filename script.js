@@ -32,7 +32,7 @@ const updateScrollState = () => {
     const rect = heroSection.getBoundingClientRect();
     const travel = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
     const progress = clamp(-rect.top / travel);
-    const panelProgress = clamp((progress - 0.08) / 0.78);
+    const panelProgress = clamp((progress - 0.1) / 0.78);
     const textProgress = clamp((progress - 0.1) / 0.24);
 
     document.documentElement.style.setProperty("--hero-progress", panelProgress.toFixed(3));
