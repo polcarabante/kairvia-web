@@ -36,6 +36,8 @@ const isMobileHero = () => mobileHeroQuery.matches;
 const resetDesktopHeroProgress = () => {
   document.documentElement.style.setProperty("--hero-progress", "0");
   document.documentElement.style.setProperty("--hero-text-progress", "0");
+  document.documentElement.style.setProperty("--arc-progress", "0");
+  document.documentElement.style.setProperty("--arc-glint-rotate", "-26deg");
   heroSection?.classList.remove("text-hidden", "panel-front", "panel-active", "chart-active");
 };
 
@@ -50,9 +52,13 @@ const updateScrollState = () => {
   const progress = clamp(-rect.top / travel);
   const panelProgress = clamp((progress - 0.1) / 0.78);
   const textProgress = clamp((progress - 0.1) / 0.24);
+  const arcProgress = clamp((progress - 0.12) / 0.42);
+  const arcRotation = -26 + arcProgress * 52;
 
   document.documentElement.style.setProperty("--hero-progress", panelProgress.toFixed(3));
   document.documentElement.style.setProperty("--hero-text-progress", textProgress.toFixed(3));
+  document.documentElement.style.setProperty("--arc-progress", arcProgress.toFixed(3));
+  document.documentElement.style.setProperty("--arc-glint-rotate", `${arcRotation.toFixed(2)}deg`);
   heroSection.classList.toggle("text-hidden", progress >= 0.34);
   heroSection.classList.toggle("panel-front", progress >= 0.22);
   heroSection.classList.toggle("panel-active", panelProgress > 0.62);

@@ -18,7 +18,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-html { --hero-progress: 0; --hero-text-progress: 0; --hero-tilt-x: 0deg; --hero-tilt-y: 0deg; --dashboard-glow-x: 50%; --dashboard-glow-y: 50%; --dashboard-glow-opacity: 0; }
+html { --hero-progress: 0; --hero-text-progress: 0; --hero-tilt-x: 0deg; --hero-tilt-y: 0deg; --dashboard-glow-x: 50%; --dashboard-glow-y: 50%; --dashboard-glow-opacity: 0; --arc-progress: 0; --arc-glint-rotate: -26deg; }
 body {
   margin: 0;
   font-family: "Inter", Arial, sans-serif;
@@ -115,7 +115,7 @@ button { cursor: pointer; }
   height: min(760px, 78vh, 82vw);
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(245,255,255,.045) 0 9%, rgba(138,247,239,.07) 22%, rgba(17,102,241,.13) 40%, rgba(17,102,241,.045) 60%, transparent 78%);
+  background: radial-gradient(circle at center, rgba(115,190,255,.028) 0 12%, rgba(58,136,255,.06) 30%, rgba(17,102,241,.095) 48%, rgba(7,38,88,.035) 66%, transparent 84%);
   pointer-events: none;
   z-index: 0;
 }
@@ -276,8 +276,8 @@ p, li { color: var(--muted); line-height: 1.65; }
   mask-image: radial-gradient(ellipse at center bottom, transparent 0 68%, #000 69.2% 72.2%, transparent 73.4%);
   opacity: .88;
   transform-origin: 50% 100%;
-  transform: rotate(-26deg);
-  animation: arcGlint 7.6s ease-in-out infinite;
+  transform: rotate(var(--arc-glint-rotate, -26deg));
+  transition: transform 120ms linear;
   will-change: transform;
 }
 .dashboard-shell {
@@ -474,7 +474,6 @@ textarea { resize: vertical; min-height: 132px; }
 @keyframes titleLineReveal { to { transform: translateY(0); } }
 @keyframes arcEnter { from { opacity: 0; transform: translateX(-50%) translateY(92px) scale(.9); } }
 @keyframes arcPulse { to { box-shadow: 0 -38px 130px rgba(18,183,176,.3), inset 0 42px 108px rgba(17,102,241,.18); } }
-@keyframes arcGlint { 0% { transform: rotate(-26deg); } 50% { transform: rotate(26deg); } 100% { transform: rotate(-26deg); } }
 @keyframes heroHaloDrift { to { filter: hue-rotate(8deg) brightness(1.1); transform: translateY(calc(24px - var(--hero-progress, 0) * 18px)) scale(1.04); } }
 @keyframes dashboardPartIn { to { opacity: 1; transform: translateY(0); } }
 @keyframes chartGrow { to { transform: scaleY(1); } }
@@ -646,6 +645,8 @@ textarea { resize: vertical; min-height: 132px; }
 
   .luminous-horizon::after {
     opacity: .68;
+    transform: rotate(-6deg);
+    transition: none;
     clip-path: inset(0 0 44% 0);
     -webkit-mask-image: radial-gradient(ellipse at center bottom, transparent 0 68.5%, #000 70% 72.4%, transparent 73.4%);
     mask-image: radial-gradient(ellipse at center bottom, transparent 0 68.5%, #000 70% 72.4%, transparent 73.4%);
