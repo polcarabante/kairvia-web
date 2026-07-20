@@ -15,7 +15,11 @@ const siteHeader = document.querySelector(".site-header");
 const heroSection = document.querySelector(".hero");
 const heroStage = document.querySelector(".hero-stage");
 const dashboardShell = document.querySelector(".dashboard-shell");
+const mobileHeroQuery = window.matchMedia("(max-width: 768px)");
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 let tickingHero = false;
+let isHeroScrollBound = false;
+let mobilePanelObserver = null;
 let dashboardGlowFrame = null;
 let dashboardGlowTarget = { x: 50, y: 50, opacity: 0 };
 
@@ -27,24 +31,32 @@ const closeNavMenu = () => {
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
+const isMobileHero = () => mobileHeroQuery.matches;
+
+const resetDesktopHeroProgress = () => {
+  document.documentElement.style.setProperty("--hero-progress", "0");
+  document.documentElement.style.setProperty("--hero-text-progress", "0");
+  heroSection?.classList.remove("text-hidden", "panel-front", "panel-active", "chart-active");
+};
+
 const updateScrollState = () => {
   const scrollY = window.scrollY || 0;
   siteHeader?.classList.toggle("is-scrolled", scrollY > 12);
 
-  if (heroSection) {
-    const rect = heroSection.getBoundingClientRect();
-    const travel = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
-    const progress = clamp(-rect.top / travel);
-    const panelProgress = clamp((progress - 0.1) / 0.78);
-    const textProgress = clamp((progress - 0.1) / 0.24);
+  if (!heroSection || isMobileHero()) return;
 
-    document.documentElement.style.setProperty("--hero-progress", panelProgress.toFixed(3));
-    document.documentElement.style.setProperty("--hero-text-progress", textProgress.toFixed(3));
-    heroSection.classList.toggle("text-hidden", progress >= 0.34);
-    heroSection.classList.toggle("panel-front", progress >= 0.22);
-    heroSection.classList.toggle("panel-active", panelProgress > 0.62);
-    heroSection.classList.toggle("chart-active", panelProgress > 0.72);
-  }
+  const rect = heroSection.getBoundingClientRect();
+  const travel = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
+  const progress = clamp(-rect.top / travel);
+  const panelProgress = clamp((progress - 0.1) / 0.78);
+  const textProgress = clamp((progress - 0.1) / 0.24);
+
+  document.documentElement.style.setProperty("--hero-progress", panelProgress.toFixed(3));
+  document.documentElement.style.setProperty("--hero-text-progress", textProgress.toFixed(3));
+  heroSection.classList.toggle("text-hidden", progress >= 0.34);
+  heroSection.classList.toggle("panel-front", progress >= 0.22);
+  heroSection.classList.toggle("panel-active", panelProgress > 0.62);
+  heroSection.classList.toggle("chart-active", panelProgress > 0.72);
 };
 
 const requestScrollUpdate = () => {
@@ -56,9 +68,74 @@ const requestScrollUpdate = () => {
   });
 };
 
+const bindHeroScroll = () => {
+  if (isHeroScrollBound || isMobileHero()) return;
+  window.addEventListener("scroll", requestScrollUpdate, { passive: true });
+  isHeroScrollBound = true;
+};
+
+const unbindHeroScroll = () => {
+  if (!isHeroScrollBound) return;
+  window.removeEventListener("scroll", requestScrollUpdate);
+  isHeroScrollBound = false;
+};
+
+const setupMobilePanelAnimation = () => {
+  if (!dashboardShell) return;
+
+  mobilePanelObserver?.disconnect();
+  mobilePanelObserver = null;
+
+  if (!isMobileHero()) {
+    dashboardShell.classList.remove("mobile-panel-visible", "mobile-panel-animating");
+    return;
+  }
+
+  resetDesktopHeroProgress();
+
+  if (reducedMotionQuery.matches) {
+    dashboardShell.classList.add("mobile-panel-visible");
+    dashboardShell.classList.remove("mobile-panel-animating");
+    return;
+  }
+
+  dashboardShell.classList.remove("mobile-panel-visible", "mobile-panel-animating");
+  mobilePanelObserver = new IntersectionObserver(
+    (entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      dashboardShell.classList.add("mobile-panel-animating");
+      requestAnimationFrame(() => dashboardShell.classList.add("mobile-panel-visible"));
+      observer.disconnect();
+      mobilePanelObserver = null;
+    },
+    { rootMargin: "0px 0px -22% 0px", threshold: 0.12 }
+  );
+  mobilePanelObserver.observe(dashboardShell);
+};
+
+const syncHeroMode = () => {
+  if (isMobileHero()) {
+    unbindHeroScroll();
+    resetDesktopHeroProgress();
+  } else {
+    setupMobilePanelAnimation();
+    bindHeroScroll();
+    requestScrollUpdate();
+    return;
+  }
+  setupMobilePanelAnimation();
+};
+
 updateScrollState();
-window.addEventListener("scroll", requestScrollUpdate, { passive: true });
-window.addEventListener("resize", requestScrollUpdate, { passive: true });
+syncHeroMode();
+window.addEventListener("resize", syncHeroMode, { passive: true });
+mobileHeroQuery.addEventListener?.("change", syncHeroMode);
+reducedMotionQuery.addEventListener?.("change", syncHeroMode);
+
+dashboardShell?.addEventListener("transitionend", (event) => {
+  if (event.propertyName !== "transform") return;
+  dashboardShell.classList.remove("mobile-panel-animating");
+});
 
 const canUseHeroPointerMotion = () =>
   window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
