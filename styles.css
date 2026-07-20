@@ -154,9 +154,9 @@ button { cursor: pointer; }
 h1, h2, h3, p, li { overflow-wrap: break-word; }
 h1 { margin: 0 auto; max-width: 980px; font-size: clamp(3rem, 7vw, 6.6rem); line-height: .95; letter-spacing: 0; color: #fff; text-wrap: balance; }
 .hero-title {
-  max-width: 980px;
-  font-size: clamp(4rem, 6.6vw, 6.15rem);
-  line-height: .94;
+  max-width: min(960px, 100%);
+  font-size: clamp(4.2rem, 7.2vw, 6.8rem);
+  line-height: .9;
   font-weight: 500;
   letter-spacing: 0;
   color: #fff;
@@ -456,12 +456,6 @@ textarea { resize: vertical; min-height: 132px; }
   .dashboard-shell { opacity: 1; filter: none; transform: translateY(0) scale(.96); }
   .dashboard-part { opacity: 1; transform: none; }
   .impact-chart span, .chart-bars span { transform: scaleY(1); animation-play-state: running; }
-}
-
-@media (min-width: 1180px) {
-  .hero-title { max-width: 1120px; font-size: clamp(4.6rem, 6.2vw, 6.3rem); white-space: nowrap; }
-  .title-mask { display: inline-block; }
-  .title-mask:first-child { margin-right: .22em; }
 }
 
 @media (max-width: 1024px) {
