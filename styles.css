@@ -115,7 +115,7 @@ button { cursor: pointer; }
   height: min(760px, 78vh, 82vw);
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(245,255,255,.11) 0 8%, rgba(138,247,239,.12) 18%, rgba(17,102,241,.2) 34%, rgba(17,102,241,.08) 52%, transparent 72%);
+  background: radial-gradient(circle at center, rgba(245,255,255,.045) 0 9%, rgba(138,247,239,.07) 22%, rgba(17,102,241,.13) 40%, rgba(17,102,241,.045) 60%, transparent 78%);
   pointer-events: none;
   z-index: 0;
 }
