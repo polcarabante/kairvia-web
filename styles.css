@@ -18,7 +18,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-html { --hero-progress: 0; --hero-text-progress: 0; --hero-tilt-x: 0deg; --hero-tilt-y: 0deg; }
+html { --hero-progress: 0; --hero-text-progress: 0; --hero-tilt-x: 0deg; --hero-tilt-y: 0deg; --dashboard-glow-x: 50%; --dashboard-glow-y: 50%; --dashboard-glow-opacity: 0; }
 body {
   margin: 0;
   font-family: "Inter", Arial, sans-serif;
@@ -240,25 +240,16 @@ p, li { color: var(--muted); line-height: 1.65; }
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border-top: 2px solid rgba(138,247,239,.9);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(235,255,255,.34) 0 1px, rgba(138,247,239,.18) 5%, rgba(18,183,176,.08) 16%, transparent 38%),
+    radial-gradient(ellipse at 50% 8%, rgba(18,183,176,.24), rgba(17,102,241,.09) 34%, transparent 70%);
   box-shadow:
-    0 -24px 80px rgba(18,183,176,.42),
-    0 -4px 18px rgba(255,255,255,.22),
-    inset 0 30px 90px rgba(17,102,241,.2);
+    0 -30px 110px rgba(18,183,176,.24),
+    inset 0 36px 100px rgba(17,102,241,.14);
+  mask-image: linear-gradient(180deg, rgba(0,0,0,.92), rgba(0,0,0,.38) 42%, transparent 86%);
   animation: arcPulse 5.2s ease-in-out infinite alternate;
 }
-.luminous-horizon::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -4px;
-  width: 24%;
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.96), transparent);
-  filter: blur(1px);
-  animation: arcSweep 4.8s ease-in-out infinite;
-}
+.luminous-horizon::after { content: none; }
 .dashboard-shell {
   position: relative;
   width: min(1180px, 92vw);
@@ -272,6 +263,8 @@ p, li { color: var(--muted); line-height: 1.65; }
   border-radius: 22px;
   box-shadow: var(--shadow), 0 0 90px rgba(17,102,241,.2);
   backdrop-filter: blur(18px);
+  overflow: hidden;
+  isolation: isolate;
   opacity: 1;
   filter: none;
   transform-origin: center center;
@@ -286,6 +279,19 @@ p, li { color: var(--muted); line-height: 1.65; }
   pointer-events: auto;
   z-index: 2;
 }
+.dashboard-shell::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--dashboard-glow-opacity, 0);
+  background:
+    radial-gradient(360px circle at var(--dashboard-glow-x, 50%) var(--dashboard-glow-y, 50%), rgba(18,183,176,.22), rgba(17,102,241,.13) 28%, transparent 68%);
+  transition: opacity 280ms ease;
+  will-change: opacity, background;
+}
+.dashboard-shell > * { position: relative; z-index: 1; }
 .hero.panel-front .dashboard-shell { z-index: 5; }
 .hero.panel-active .dashboard-shell { z-index: 6; }
 .dashboard-topbar {
@@ -437,8 +443,7 @@ textarea { resize: vertical; min-height: 132px; }
 @keyframes heroButtonEnter { to { opacity: 1; transform: translateY(0); } }
 @keyframes titleLineReveal { to { transform: translateY(0); } }
 @keyframes arcEnter { from { opacity: 0; transform: translateX(-50%) translateY(92px) scale(.9); } }
-@keyframes arcPulse { to { box-shadow: 0 -32px 96px rgba(18,183,176,.5), inset 0 34px 90px rgba(17,102,241,.22); border-top-color: rgba(235,255,255,.98); } }
-@keyframes arcSweep { 0%, 100% { transform: translateX(-185%); opacity: .08; } 45%, 60% { opacity: .85; } 100% { transform: translateX(85%); } }
+@keyframes arcPulse { to { box-shadow: 0 -38px 130px rgba(18,183,176,.3), inset 0 42px 108px rgba(17,102,241,.18); } }
 @keyframes heroHaloDrift { to { filter: hue-rotate(8deg) brightness(1.1); transform: translateY(calc(24px - var(--hero-progress, 0) * 18px)) scale(1.04); } }
 @keyframes dashboardPartIn { to { opacity: 1; transform: translateY(0); } }
 @keyframes chartGrow { to { transform: scaleY(1); } }
@@ -454,6 +459,7 @@ textarea { resize: vertical; min-height: 132px; }
   .hero-content { opacity: 1; transform: translateX(-50%); }
   .hero-eyebrow, .hero-copy, .hero-actions { opacity: 1; transform: none; }
   .dashboard-shell { opacity: 1; filter: none; transform: translateY(0) scale(.96); }
+  .dashboard-shell::before { opacity: .08; transition: none; }
   .dashboard-part { opacity: 1; transform: none; }
   .impact-chart span, .chart-bars span { transform: scaleY(1); animation-play-state: running; }
 }

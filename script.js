@@ -14,7 +14,10 @@ const otherAreaField = document.querySelector(".other-area-field");
 const siteHeader = document.querySelector(".site-header");
 const heroSection = document.querySelector(".hero");
 const heroStage = document.querySelector(".hero-stage");
+const dashboardShell = document.querySelector(".dashboard-shell");
 let tickingHero = false;
+let dashboardGlowFrame = null;
+let dashboardGlowTarget = { x: 50, y: 50, opacity: 0 };
 
 const closeNavMenu = () => {
   navMenu?.classList.remove("open");
@@ -66,6 +69,19 @@ const resetHeroPointerMotion = () => {
   document.documentElement.style.setProperty("--hero-tilt-y", "0deg");
 };
 
+const applyDashboardGlow = () => {
+  dashboardGlowFrame = null;
+  if (!dashboardShell) return;
+  dashboardShell.style.setProperty("--dashboard-glow-x", `${dashboardGlowTarget.x.toFixed(2)}%`);
+  dashboardShell.style.setProperty("--dashboard-glow-y", `${dashboardGlowTarget.y.toFixed(2)}%`);
+  dashboardShell.style.setProperty("--dashboard-glow-opacity", String(dashboardGlowTarget.opacity));
+};
+
+const requestDashboardGlowUpdate = () => {
+  if (dashboardGlowFrame) return;
+  dashboardGlowFrame = window.requestAnimationFrame(applyDashboardGlow);
+};
+
 heroStage?.addEventListener("pointermove", (event) => {
   if (!canUseHeroPointerMotion()) return;
   const rect = heroStage.getBoundingClientRect();
@@ -76,7 +92,28 @@ heroStage?.addEventListener("pointermove", (event) => {
 });
 
 heroStage?.addEventListener("pointerleave", resetHeroPointerMotion);
-window.addEventListener("blur", resetHeroPointerMotion);
+
+dashboardShell?.addEventListener("pointermove", (event) => {
+  if (!canUseHeroPointerMotion()) return;
+  const rect = dashboardShell.getBoundingClientRect();
+  dashboardGlowTarget = {
+    x: ((event.clientX - rect.left) / rect.width) * 100,
+    y: ((event.clientY - rect.top) / rect.height) * 100,
+    opacity: 1,
+  };
+  requestDashboardGlowUpdate();
+});
+
+dashboardShell?.addEventListener("pointerleave", () => {
+  dashboardGlowTarget = { ...dashboardGlowTarget, opacity: 0 };
+  requestDashboardGlowUpdate();
+});
+
+window.addEventListener("blur", () => {
+  resetHeroPointerMotion();
+  dashboardGlowTarget = { ...dashboardGlowTarget, opacity: 0 };
+  requestDashboardGlowUpdate();
+});
 
 navToggle?.addEventListener("click", (event) => {
   event.stopPropagation();
