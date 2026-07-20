@@ -11,18 +11,88 @@ const areaPanel = document.querySelector(".area-multiselect-panel");
 const areaCheckboxes = document.querySelectorAll('input[name="areas[]"]');
 const otherAreaField = document.querySelector(".other-area-field");
 
-navToggle?.addEventListener("click", () => {
+const siteHeader = document.querySelector(".site-header");
+const heroSection = document.querySelector(".hero");
+const heroStage = document.querySelector(".hero-stage");
+let tickingHero = false;
+
+const closeNavMenu = () => {
+  navMenu?.classList.remove("open");
+  navToggle?.setAttribute("aria-expanded", "false");
+  document.body.classList.remove("nav-open");
+};
+
+const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
+const updateScrollState = () => {
+  const scrollY = window.scrollY || 0;
+  siteHeader?.classList.toggle("is-scrolled", scrollY > 12);
+
+  if (heroSection) {
+    const rect = heroSection.getBoundingClientRect();
+    const travel = Math.max(heroSection.offsetHeight - window.innerHeight, 1);
+    const progress = clamp(-rect.top / travel);
+    const panelProgress = clamp((progress - 0.08) / 0.78);
+    const textProgress = clamp((progress - 0.1) / 0.24);
+
+    document.documentElement.style.setProperty("--hero-progress", panelProgress.toFixed(3));
+    document.documentElement.style.setProperty("--hero-text-progress", textProgress.toFixed(3));
+    heroSection.classList.toggle("text-hidden", progress >= 0.34);
+    heroSection.classList.toggle("panel-front", progress >= 0.22);
+    heroSection.classList.toggle("panel-active", panelProgress > 0.62);
+    heroSection.classList.toggle("chart-active", panelProgress > 0.72);
+  }
+};
+
+const requestScrollUpdate = () => {
+  if (tickingHero) return;
+  tickingHero = true;
+  window.requestAnimationFrame(() => {
+    updateScrollState();
+    tickingHero = false;
+  });
+};
+
+updateScrollState();
+window.addEventListener("scroll", requestScrollUpdate, { passive: true });
+window.addEventListener("resize", requestScrollUpdate, { passive: true });
+
+const canUseHeroPointerMotion = () =>
+  window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const resetHeroPointerMotion = () => {
+  document.documentElement.style.setProperty("--hero-tilt-x", "0deg");
+  document.documentElement.style.setProperty("--hero-tilt-y", "0deg");
+};
+
+heroStage?.addEventListener("pointermove", (event) => {
+  if (!canUseHeroPointerMotion()) return;
+  const rect = heroStage.getBoundingClientRect();
+  const x = (event.clientX - rect.left) / rect.width - 0.5;
+  const y = (event.clientY - rect.top) / rect.height - 0.5;
+  document.documentElement.style.setProperty("--hero-tilt-x", `${(-y * 2.2).toFixed(2)}deg`);
+  document.documentElement.style.setProperty("--hero-tilt-y", `${(x * 2.8).toFixed(2)}deg`);
+});
+
+heroStage?.addEventListener("pointerleave", resetHeroPointerMotion);
+window.addEventListener("blur", resetHeroPointerMotion);
+
+navToggle?.addEventListener("click", (event) => {
+  event.stopPropagation();
   const isOpen = navMenu.classList.toggle("open");
   navToggle.setAttribute("aria-expanded", String(isOpen));
   document.body.classList.toggle("nav-open", isOpen);
 });
 
 navLinks.forEach((link) => {
-  link.addEventListener("click", () => {
-    navMenu.classList.remove("open");
-    navToggle?.setAttribute("aria-expanded", "false");
-    document.body.classList.remove("nav-open");
-  });
+  link.addEventListener("click", closeNavMenu);
+});
+
+document.addEventListener("click", (event) => {
+  if (!document.body.classList.contains("nav-open")) return;
+  if (navMenu?.contains(event.target) || navToggle?.contains(event.target)) return;
+  closeNavMenu();
 });
 
 const revealObserver = new IntersectionObserver(
@@ -91,6 +161,7 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     setAreaPanelOpen(false);
+    closeNavMenu();
   }
 });
 
@@ -468,6 +539,7 @@ const bindDiagnosticModalEvents = () => {
 diagnosticTriggers.forEach((trigger) => {
   trigger.addEventListener("click", (event) => {
     event.preventDefault();
+    closeNavMenu();
     setDiagnosticModalOpen(true);
   });
 });
