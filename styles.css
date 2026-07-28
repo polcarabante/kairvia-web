@@ -1436,6 +1436,10 @@ textarea { resize: vertical; min-height: 132px; }
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+.package-label {
+  display: inline-block;
+  margin-bottom: 10px;
+}
 .process-step > span {
   width: 42px;
   height: 42px;
@@ -1510,6 +1514,9 @@ textarea { resize: vertical; min-height: 132px; }
   border-radius: 8px;
   font-weight: 800;
 }
+.fundae-calculator-trigger {
+  margin-top: 22px;
+}
 .security-panel,
 .cta-panel,
 .contact-layout {
@@ -1527,6 +1534,17 @@ textarea { resize: vertical; min-height: 132px; }
   gap: 34px;
   align-items: start;
 }
+.security-panel {
+  gap: 24px;
+}
+.security-panel h2 {
+  max-width: 520px;
+  font-size: clamp(2.15rem, 3.7vw, 3.35rem);
+  line-height: 1.08;
+}
+.security-panel > div > p:not(.eyebrow) {
+  max-width: 520px;
+}
 .trust-list {
   grid-template-columns: repeat(2, 1fr);
 }
@@ -1538,14 +1556,14 @@ textarea { resize: vertical; min-height: 132px; }
   font-weight: 800;
 }
 .security-panel .trust-list {
-  margin-top: 36px;
-  gap: 14px;
+  margin-top: 0;
+  gap: 20px;
 }
 .security-panel .trust-list li {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 30px 32px;
+  gap: 18px;
+  padding: 24px 26px;
 }
 .security-panel .trust-list li::before {
   position: static;
@@ -1561,8 +1579,11 @@ textarea { resize: vertical; min-height: 132px; }
   margin: 22px 0 0;
   color: #eaf8ff;
 }
+.package-card .package-note {
+  margin-bottom: 28px;
+}
 .package-card .btn {
-  margin-top: 28px;
+  margin-top: auto;
 }
 .training-card {
   padding: 28px;
@@ -1639,13 +1660,18 @@ textarea { resize: vertical; min-height: 132px; }
     padding: 22px;
     border-radius: 18px;
   }
+  .security-panel h2 {
+    max-width: 100%;
+    font-size: clamp(1.9rem, 8vw, 2.55rem);
+    line-height: 1.1;
+  }
   .security-panel .trust-list {
-    margin-top: 26px;
+    margin-top: 24px;
     gap: 12px;
   }
   .security-panel .trust-list li {
-    gap: 18px;
-    padding: 28px;
+    gap: 16px;
+    padding: 22px 24px;
   }
   .process-list,
   .example-list {
@@ -1654,8 +1680,14 @@ textarea { resize: vertical; min-height: 132px; }
   .example-card.feature {
     grid-column: auto;
   }
+  .package-card .package-note {
+    margin-bottom: 22px;
+  }
   .package-card .btn {
-    margin-top: 22px;
+    margin-top: auto;
+  }
+  .fundae-calculator-trigger {
+    margin-top: 16px;
   }
   .footer {
     flex-direction: column;
