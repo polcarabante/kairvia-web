@@ -3,12 +3,29 @@ const navMenu = document.querySelector(".nav-menu");
 const navLinks = document.querySelectorAll(".nav-menu a");
 const form = document.querySelector(".contact-form");
 const formNote = document.querySelector(".form-note");
+const contactMethodInputs = form?.querySelectorAll('input[name="contact_method"]') || [];
+const contactEmailField = form?.querySelector(".contact-email-field");
+const contactEmailInput = form?.querySelector('input[name="email"]');
+const contactPhoneField = form?.querySelector(".contact-phone-field");
+const contactPhoneInput = form?.querySelector('input[name="telefono"]');
 const areaMultiselect = document.querySelector("[data-area-multiselect]");
 const areaToggle = document.querySelector(".area-multiselect-toggle");
 const areaSummary = document.querySelector("[data-area-summary]");
 const areaValue = document.querySelector("[data-areas-value]");
-const areaPanel = document.querySelector(".area-multiselect-panel");
-const areaCheckboxes = document.querySelectorAll('input[name="areas[]"]');
+let areaPanel = null;
+const areaOptions = [
+  "Administración y documentación",
+  "Contabilidad y facturación",
+  "Compras y proveedores",
+  "Ventas y CRM",
+  "Atención al cliente",
+  "Marketing",
+  "RRHH",
+  "Dirección y reporting",
+  "Operaciones internas",
+  "Otro",
+];
+const selectedAreas = new Set();
 const otherAreaField = document.querySelector(".other-area-field");
 
 const siteHeader = document.querySelector(".site-header");
@@ -231,47 +248,95 @@ document.querySelectorAll(".reveal").forEach((element) => {
   revealObserver.observe(element);
 });
 
-const getSelectedAreas = () =>
-  Array.from(areaCheckboxes)
-    .filter((checkbox) => checkbox.checked)
-    .map((checkbox) => checkbox.value);
+const getSelectedAreas = () => Array.from(selectedAreas);
 
 const updateAreaMultiselect = () => {
-  const selectedAreas = getSelectedAreas();
+  const selectedAreaList = getSelectedAreas();
 
   if (areaSummary) {
-    if (selectedAreas.length === 0) {
+    if (selectedAreaList.length === 0) {
       areaSummary.textContent = "Seleccione una o varias áreas";
-    } else if (selectedAreas.length <= 3) {
-      areaSummary.textContent = selectedAreas.join(", ");
+    } else if (selectedAreaList.length === 1) {
+      areaSummary.textContent = "1 área seleccionada";
     } else {
-      areaSummary.textContent = `${selectedAreas.length} áreas seleccionadas`;
+      areaSummary.textContent = `${selectedAreaList.length} áreas seleccionadas`;
     }
   }
 
   if (areaValue) {
-    areaValue.value = selectedAreas.join(", ");
+    areaValue.value = selectedAreaList.join(", ");
   }
 
   if (otherAreaField) {
-    otherAreaField.hidden = !selectedAreas.includes("Otro");
+    otherAreaField.hidden = !selectedAreas.has("Otro");
   }
 };
 
-const setAreaPanelOpen = (isOpen) => {
-  if (!areaPanel || !areaToggle) return;
-  areaPanel.hidden = !isOpen;
-  areaToggle.setAttribute("aria-expanded", String(isOpen));
+const renderAreaPanel = () => {
+  if (!areaMultiselect || areaPanel) return areaPanel;
+
+  areaPanel = document.createElement("div");
+  areaPanel.className = "area-multiselect-panel";
+  areaPanel.id = "area-multiselect-panel";
+  areaPanel.setAttribute("role", "group");
+  areaPanel.setAttribute("aria-label", "Áreas que quiere mejorar");
+
+  areaOptions.forEach((option) => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.name = "areas[]";
+    checkbox.value = option;
+    checkbox.checked = selectedAreas.has(option);
+
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        selectedAreas.add(option);
+      } else {
+        selectedAreas.delete(option);
+      }
+      updateAreaMultiselect();
+    });
+
+    label.append(checkbox, document.createTextNode(option));
+    areaPanel.append(label);
+  });
+
+  areaMultiselect.append(areaPanel);
+  return areaPanel;
 };
 
+const removeAreaPanel = () => {
+  areaPanel?.remove();
+  areaPanel = null;
+};
+
+const setAreaPanelOpen = (isOpen) => {
+  if (!areaToggle || !areaMultiselect) return;
+
+  areaToggle.setAttribute("aria-expanded", String(isOpen));
+  areaMultiselect.classList.toggle("is-open", isOpen);
+
+  if (!isOpen) {
+    removeAreaPanel();
+    return;
+  }
+
+  const panel = renderAreaPanel();
+  if (!panel) return;
+
+  panel.classList.remove("is-up");
+  const toggleRect = areaToggle.getBoundingClientRect();
+  const availableBelow = window.innerHeight - toggleRect.bottom;
+  const availableAbove = toggleRect.top;
+  panel.classList.toggle("is-up", availableBelow < 300 && availableAbove > availableBelow);
+};
+
+setAreaPanelOpen(false);
+
 areaToggle?.addEventListener("click", () => {
-  setAreaPanelOpen(areaPanel?.hidden ?? true);
+  setAreaPanelOpen(!areaMultiselect?.classList.contains("is-open"));
 });
-
-areaCheckboxes.forEach((checkbox) => {
-  checkbox.addEventListener("change", updateAreaMultiselect);
-});
-
 document.addEventListener("click", (event) => {
   if (areaMultiselect && !areaMultiselect.contains(event.target)) {
     setAreaPanelOpen(false);
@@ -329,6 +394,28 @@ const getTrainingPercentage = (employees) => {
   return 0.5;
 };
 
+const bindContactValidationMessages = (formElement) => {
+  if (!formElement) return;
+
+  formElement.querySelectorAll('input[name="whatsapp"], input[name="phone"], input[name="telefono"]').forEach((input) => {
+    input.addEventListener("invalid", () => {
+      if (!input.validity.valid) {
+        input.setCustomValidity("Introduce un número de WhatsApp válido.");
+      }
+    });
+    input.addEventListener("input", () => input.setCustomValidity(""));
+  });
+
+  formElement.querySelectorAll('input[name="email"]').forEach((input) => {
+    input.addEventListener("invalid", () => {
+      if (!input.validity.valid) {
+        input.setCustomValidity("Introduce un correo electrónico válido.");
+      }
+    });
+    input.addEventListener("input", () => input.setCustomValidity(""));
+  });
+};
+
 const getFundaeModalMarkup = () => `
   <div class="fundae-modal" id="fundae-modal">
     <div class="fundae-modal-backdrop" data-fundae-close></div>
@@ -362,12 +449,12 @@ const getFundaeModalMarkup = () => `
           <input type="text" name="company" autocomplete="organization" required />
         </label>
         <label class="full fundae-whatsapp-field">
-          WhatsApp o teléfono
-          <input type="tel" name="phone" autocomplete="tel" required />
+          Número de WhatsApp
+          <input type="tel" name="phone" autocomplete="tel" placeholder="Ej. +34 600 000 000" pattern="[+0-9 ]{9,18}" title="Introduce un número de WhatsApp válido." required />
         </label>
         <label class="full fundae-email-field" hidden>
-          Email
-          <input type="email" name="email" autocomplete="email" />
+          Correo electrónico
+          <input type="email" name="email" autocomplete="email" placeholder="Ej. nombre@empresa.com" />
         </label>
         <label>
           Número medio de empleados
@@ -403,7 +490,7 @@ const bindFundaeModalEvents = () => {
   const fundaeResultEmployee = fundaeModal?.querySelector(".fundae-result-employee");
   const fundaeContactButton = fundaeModal?.querySelector("[data-fundae-contact]");
 
-  const updateFundaeContactFields = () => {
+  const updateFundaeContactFields = ({ clearValue = false } = {}) => {
     const method = fundaeForm?.querySelector('input[name="contact_method"]:checked')?.value || "whatsapp";
     const usesWhatsapp = method === "whatsapp";
     const phoneField = fundaeForm?.querySelector(".fundae-whatsapp-field");
@@ -414,13 +501,31 @@ const bindFundaeModalEvents = () => {
     if (phoneField && emailField && phoneInput && emailInput) {
       phoneField.hidden = !usesWhatsapp;
       emailField.hidden = usesWhatsapp;
+      phoneInput.type = "tel";
+      phoneInput.autocomplete = "tel";
+      phoneInput.placeholder = "Ej. +34 600 000 000";
       phoneInput.required = usesWhatsapp;
+      phoneInput.disabled = !usesWhatsapp;
+      emailInput.type = "email";
+      emailInput.autocomplete = "email";
+      emailInput.placeholder = "Ej. nombre@empresa.com";
       emailInput.required = !usesWhatsapp;
+      emailInput.disabled = usesWhatsapp;
+
+      if (clearValue) {
+        phoneInput.value = "";
+        emailInput.value = "";
+      }
+
+      phoneInput.setCustomValidity("");
+      emailInput.setCustomValidity("");
     }
   };
 
+  bindContactValidationMessages(fundaeForm);
+
   fundaeForm?.querySelectorAll('input[name="contact_method"]').forEach((input) => {
-    input.addEventListener("change", updateFundaeContactFields);
+    input.addEventListener("change", () => updateFundaeContactFields({ clearValue: true }));
   });
   updateFundaeContactFields();
 
@@ -443,13 +548,14 @@ const bindFundaeModalEvents = () => {
     const creditPerEmployee = totalCredit / employees;
 
     const contactMethod = String(formData.get("contact_method") || "whatsapp");
+    const usesEmailContact = contactMethod === "email";
     const leadPayload = {
       formType: "FUNDAE",
-      contactPreference: contactMethod === "email" ? "Correo electrónico" : "WhatsApp",
+      contactPreference: usesEmailContact ? "Correo electrónico" : "WhatsApp",
       name: String(formData.get("name") || "").trim(),
       company: String(formData.get("company") || "").trim(),
-      email: String(formData.get("email") || "").trim(),
-      phone: String(formData.get("phone") || "").trim(),
+      email: usesEmailContact ? String(formData.get("email") || "").trim() : "",
+      phone: usesEmailContact ? "" : String(formData.get("phone") || "").trim(),
       message: `Crédito estimado: ${formatCurrency(totalCredit)}. Crédito por empleado: ${formatCurrency(creditPerEmployee)}. Empleados: ${employees}. Base otras cotizaciones: ${contributionBase}. Nuevos trabajadores: ${newWorkers}.`,
       areas: "Formación IA bonificable FUNDAE",
     };
@@ -539,7 +645,7 @@ const getDiagnosticModalMarkup = () => `
             </label>
           </div>
         </fieldset>
-        <p class="diagnostic-recommendation full">
+        <p class="diagnostic-recommendation full" data-diagnostic-contact-copy>
           Recomendamos el contacto por WhatsApp para agilizar el proceso y poder resolver cualquier duda de forma más rápida.
         </p>
         <label>
@@ -552,11 +658,11 @@ const getDiagnosticModalMarkup = () => `
         </label>
         <label class="full diagnostic-whatsapp-field">
           Número de WhatsApp
-          <input type="tel" name="whatsapp" autocomplete="tel" required />
+          <input type="tel" name="whatsapp" autocomplete="tel" placeholder="Ej. +34 600 000 000" pattern="[+0-9 ]{9,18}" title="Introduce un número de WhatsApp válido." required />
         </label>
         <label class="full diagnostic-email-field" hidden>
-          Email
-          <input type="email" name="email" autocomplete="email" />
+          Correo electrónico
+          <input type="email" name="email" autocomplete="email" placeholder="Ej. nombre@empresa.com" />
         </label>
         <label class="full">
           Cuéntenos un poco sobre su empresa
@@ -569,18 +675,43 @@ const getDiagnosticModalMarkup = () => `
   </div>
 `;
 
-const updateDiagnosticContactFields = (diagnosticForm) => {
+const updateDiagnosticContactFields = (diagnosticForm, { clearValue = false } = {}) => {
   const method = diagnosticForm.querySelector('input[name="contact_method"]:checked')?.value || "whatsapp";
   const whatsappField = diagnosticForm.querySelector(".diagnostic-whatsapp-field");
   const whatsappInput = diagnosticForm.querySelector('input[name="whatsapp"]');
   const emailField = diagnosticForm.querySelector(".diagnostic-email-field");
   const emailInput = diagnosticForm.querySelector('input[name="email"]');
+  const contactCopy = diagnosticForm.querySelector("[data-diagnostic-contact-copy]");
+
+  if (!whatsappField || !whatsappInput || !emailField || !emailInput) return;
 
   const usesWhatsapp = method === "whatsapp";
   whatsappField.hidden = !usesWhatsapp;
   emailField.hidden = usesWhatsapp;
+  whatsappInput.type = "tel";
+  whatsappInput.autocomplete = "tel";
+  whatsappInput.placeholder = "Ej. +34 600 000 000";
   whatsappInput.required = usesWhatsapp;
+  whatsappInput.disabled = !usesWhatsapp;
+  emailInput.type = "email";
+  emailInput.autocomplete = "email";
+  emailInput.placeholder = "Ej. nombre@empresa.com";
   emailInput.required = !usesWhatsapp;
+  emailInput.disabled = usesWhatsapp;
+
+  if (clearValue) {
+    whatsappInput.value = "";
+    emailInput.value = "";
+  }
+
+  whatsappInput.setCustomValidity("");
+  emailInput.setCustomValidity("");
+
+  if (contactCopy) {
+    contactCopy.textContent = usesWhatsapp
+      ? "Recomendamos el contacto por WhatsApp para agilizar el proceso y poder resolver cualquier duda de forma más rápida."
+      : "Nos pondremos en contacto con usted por correo electrónico utilizando la dirección indicada.";
+  }
 };
 
 const setDiagnosticModalOpen = (isOpen) => {
@@ -606,12 +737,14 @@ const bindDiagnosticModalEvents = () => {
   const diagnosticForm = diagnosticModal?.querySelector(".diagnostic-form");
   const diagnosticStatus = diagnosticModal?.querySelector(".diagnostic-status");
 
+  bindContactValidationMessages(diagnosticForm);
+
   diagnosticModal?.querySelectorAll("[data-diagnostic-close]").forEach((button) => {
     button.addEventListener("click", () => setDiagnosticModalOpen(false));
   });
 
   diagnosticForm?.querySelectorAll('input[name="contact_method"]').forEach((input) => {
-    input.addEventListener("change", () => updateDiagnosticContactFields(diagnosticForm));
+    input.addEventListener("change", () => updateDiagnosticContactFields(diagnosticForm, { clearValue: true }));
   });
 
   if (diagnosticForm) {
@@ -624,13 +757,14 @@ const bindDiagnosticModalEvents = () => {
     const submitButton = diagnosticForm.querySelector('button[type="submit"]');
     const formData = new FormData(diagnosticForm);
     const contactMethod = String(formData.get("contact_method") || "whatsapp");
+    const usesEmailContact = contactMethod === "email";
     const payload = {
       formType: "Diagnóstico",
-      contactPreference: contactMethod === "email" ? "Correo electrónico" : "WhatsApp",
+      contactPreference: usesEmailContact ? "Correo electrónico" : "WhatsApp",
       name: String(formData.get("name") || "").trim(),
       company: String(formData.get("company") || "").trim(),
-      phone: String(formData.get("whatsapp") || "").trim(),
-      email: String(formData.get("email") || "").trim(),
+      phone: usesEmailContact ? "" : String(formData.get("whatsapp") || "").trim(),
+      email: usesEmailContact ? String(formData.get("email") || "").trim() : "",
       message: String(formData.get("message") || "").trim(),
       areas: "Diagnóstico IA",
     };
@@ -671,26 +805,65 @@ document.addEventListener("keydown", (event) => {
 });
 
 
+
+const getContactFormMethod = () =>
+  form?.querySelector('input[name="contact_method"]:checked')?.value || "email";
+
+const updateContactFormMethod = ({ clearValue = false } = {}) => {
+  if (!contactEmailField || !contactEmailInput || !contactPhoneField || !contactPhoneInput) return;
+
+  const usesEmail = getContactFormMethod() === "email";
+  contactEmailField.hidden = !usesEmail;
+  contactPhoneField.hidden = usesEmail;
+  contactEmailInput.type = "email";
+  contactEmailInput.autocomplete = "email";
+  contactEmailInput.placeholder = "nombre@empresa.com";
+  contactEmailInput.required = usesEmail;
+  contactEmailInput.disabled = !usesEmail;
+  contactPhoneInput.type = "tel";
+  contactPhoneInput.autocomplete = "tel";
+  contactPhoneInput.placeholder = "+34 600 000 000";
+  contactPhoneInput.required = !usesEmail;
+  contactPhoneInput.disabled = usesEmail;
+
+  if (clearValue) {
+    contactEmailInput.value = "";
+    contactPhoneInput.value = "";
+  }
+
+  contactEmailInput.setCustomValidity("");
+  contactPhoneInput.setCustomValidity("");
+  formNote?.classList.remove("error");
+};
+
+bindContactValidationMessages(form);
+contactMethodInputs.forEach((input) => {
+  input.addEventListener("change", () => updateContactFormMethod({ clearValue: true }));
+});
+updateContactFormMethod();
+
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const selectedAreas = getSelectedAreas();
+  const selectedAreaList = getSelectedAreas();
 
-  if (areaCheckboxes.length && selectedAreas.length === 0) {
+  if (areaOptions.length && selectedAreaList.length === 0) {
     formNote.textContent = "Seleccione al menos un área que quiera mejorar.";
     areaToggle?.focus();
     return;
   }
 
   const formData = new FormData(form);
+  const contactMethod = getContactFormMethod();
+  const usesEmailContact = contactMethod === "email";
   const payload = {
     formType: "Contacto",
-    contactPreference: "Correo electrónico",
+    contactPreference: usesEmailContact ? "Correo electrónico" : "WhatsApp",
     name: String(formData.get("nombre") || "").trim(),
     company: String(formData.get("empresa") || "").trim(),
-    email: String(formData.get("email") || "").trim(),
-    phone: String(formData.get("telefono") || "").trim(),
-    areas: selectedAreas.join(", "),
+    email: usesEmailContact ? String(formData.get("email") || "").trim() : "",
+    phone: usesEmailContact ? "" : String(formData.get("telefono") || "").trim(),
+    areas: selectedAreaList.join(", "),
     message: String(formData.get("mensaje") || "").trim(),
   };
 
@@ -699,7 +872,10 @@ form?.addEventListener("submit", async (event) => {
   try {
     await submitLead(payload);
     form.reset();
+    selectedAreas.clear();
     updateAreaMultiselect();
+    updateContactFormMethod();
+    setAreaPanelOpen(false);
     formNote.textContent = payload.email
       ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
       : "Solicitud enviada correctamente. Hemos guardado sus datos para contactarle.";
