@@ -172,8 +172,8 @@ const resetHeroPointerMotion = () => {
 const applyDashboardGlow = () => {
   dashboardGlowFrame = null;
   if (!dashboardShell) return;
-  dashboardShell.style.setProperty("--dashboard-glow-x", `${dashboardGlowTarget.x.toFixed(2)}%`);
-  dashboardShell.style.setProperty("--dashboard-glow-y", `${dashboardGlowTarget.y.toFixed(2)}%`);
+  dashboardShell.style.setProperty("--dashboard-glow-x", `${dashboardGlowTarget.x.toFixed(2)}px`);
+  dashboardShell.style.setProperty("--dashboard-glow-y", `${dashboardGlowTarget.y.toFixed(2)}px`);
   dashboardShell.style.setProperty("--dashboard-glow-opacity", String(dashboardGlowTarget.opacity));
 };
 
@@ -197,8 +197,8 @@ dashboardShell?.addEventListener("pointermove", (event) => {
   if (!canUseHeroPointerMotion()) return;
   const rect = dashboardShell.getBoundingClientRect();
   dashboardGlowTarget = {
-    x: ((event.clientX - rect.left) / rect.width) * 100,
-    y: ((event.clientY - rect.top) / rect.height) * 100,
+    x: ((event.clientX - rect.left) / rect.width) * dashboardShell.offsetWidth,
+    y: ((event.clientY - rect.top) / rect.height) * dashboardShell.offsetHeight,
     opacity: 1,
   };
   requestDashboardGlowUpdate();

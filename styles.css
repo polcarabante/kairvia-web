@@ -318,7 +318,7 @@ p, li { color: var(--muted); line-height: 1.65; }
   pointer-events: none;
   opacity: var(--dashboard-glow-opacity, 0);
   background:
-    radial-gradient(360px circle at var(--dashboard-glow-x, 50%) var(--dashboard-glow-y, 50%), rgba(18,183,176,.22), rgba(17,102,241,.13) 28%, transparent 68%);
+    radial-gradient(360px circle at calc(var(--dashboard-glow-x, 50%) + 22%) calc(var(--dashboard-glow-y, 50%) + 22%), rgba(18,183,176,.22), rgba(17,102,241,.13) 28%, transparent 68%);
   transition: opacity 280ms ease;
   will-change: opacity, background;
 }
@@ -1535,15 +1535,17 @@ textarea { resize: vertical; min-height: 132px; }
   align-items: start;
 }
 .security-panel {
-  gap: 24px;
+  grid-template-columns: .78fr 1.22fr;
+  gap: 22px;
+  padding: 34px 36px;
 }
 .security-panel h2 {
-  max-width: 520px;
-  font-size: clamp(2.15rem, 3.7vw, 3.35rem);
-  line-height: 1.08;
+  max-width: 500px;
+  font-size: clamp(2rem, 3.25vw, 3rem);
+  line-height: 1.1;
 }
 .security-panel > div > p:not(.eyebrow) {
-  max-width: 520px;
+  max-width: 500px;
 }
 .trust-list {
   grid-template-columns: repeat(2, 1fr);
@@ -1556,14 +1558,15 @@ textarea { resize: vertical; min-height: 132px; }
   font-weight: 800;
 }
 .security-panel .trust-list {
-  margin-top: 0;
-  gap: 20px;
+  align-self: start;
+  margin-top: 10px;
+  gap: 18px;
 }
 .security-panel .trust-list li {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 24px 26px;
+  gap: 16px;
+  padding: 20px 22px;
 }
 .security-panel .trust-list li::before {
   position: static;
@@ -1662,16 +1665,16 @@ textarea { resize: vertical; min-height: 132px; }
   }
   .security-panel h2 {
     max-width: 100%;
-    font-size: clamp(1.9rem, 8vw, 2.55rem);
-    line-height: 1.1;
+    font-size: clamp(1.8rem, 7.4vw, 2.35rem);
+    line-height: 1.12;
   }
   .security-panel .trust-list {
-    margin-top: 24px;
+    margin-top: 22px;
     gap: 12px;
   }
   .security-panel .trust-list li {
-    gap: 16px;
-    padding: 22px 24px;
+    gap: 14px;
+    padding: 20px 22px;
   }
   .process-list,
   .example-list {
