@@ -431,12 +431,8 @@ const getFundaeModalMarkup = () => `
         <p>
           Para conocer el importe que tiene asignado oficialmente su empresa, deberá consultarlo directamente en la aplicación de FUNDAE o realizar el cálculo mediante su simulador oficial.
         </p>
-        <p>
-          Kairvia puede ayudarle posteriormente a interpretar el resultado y a gestionar la documentación y los trámites necesarios para aprovechar correctamente su crédito formativo.
-        </p>
         <div class="fundae-official-links">
           <a class="btn btn-secondary" href="https://simuladorcredito.fundae.es/" target="_blank" rel="noopener noreferrer">Calcular en el simulador oficial de FUNDAE <span aria-hidden="true">↗</span></a>
-          <a class="btn btn-secondary" href="https://empresas.fundae.es/Lanzadera" target="_blank" rel="noopener noreferrer">Consultar mi crédito en FUNDAE <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <form class="fundae-calculator-form">
@@ -444,7 +440,7 @@ const getFundaeModalMarkup = () => `
           <legend>¿Cómo prefiere que le contactemos?</legend>
           <div class="contact-method-options">
             <label class="contact-method-option">
-              <input type="radio" name="contact_method" value="whatsapp" checked />
+              <input type="radio" name="contact_method" value="whatsapp" required />
               <span>WhatsApp</span>
             </label>
             <label class="contact-method-option">
@@ -469,16 +465,18 @@ const getFundaeModalMarkup = () => `
           Correo electrónico
           <input type="email" name="email" autocomplete="email" placeholder="Ej. nombre@empresa.com" />
         </label>
-        <label>
-          Número medio de empleados
+        <label class="fundae-number-field">
+          <span class="fundae-field-label">Plantilla media del año anterior</span>
+          <span class="fundae-field-help">Indique el número medio de trabajadores que tuvo la empresa durante el año anterior. Si no conoce el dato exacto, introduzca una cifra aproximada; el resultado de esta calculadora será orientativo.</span>
           <input type="number" name="employees" min="1" step="1" inputmode="numeric" required />
         </label>
-        <label>
-          Base de otras cotizaciones del año anterior
+        <label class="fundae-number-field">
+          <span class="fundae-field-label">Base de otras cotizaciones del año anterior</span>
+          <span class="fundae-field-help fundae-field-help-spacer" aria-hidden="true"></span>
           <input type="number" name="contribution_base" min="0" step="0.01" inputmode="decimal" required />
         </label>
         <label class="full">
-          Nuevos trabajadores incorporados <span>opcional</span>
+          Nuevos trabajadores incorporados <span>(opcional)</span>
           <input type="number" name="new_workers" min="0" step="1" inputmode="numeric" />
         </label>
         <button class="btn btn-primary full" type="submit">Calcular crédito</button>
@@ -506,8 +504,9 @@ const bindFundaeModalEvents = () => {
   const fundaeContactButton = fundaeModal?.querySelector("[data-fundae-contact]");
 
   const updateFundaeContactFields = ({ clearValue = false } = {}) => {
-    const method = fundaeForm?.querySelector('input[name="contact_method"]:checked')?.value || "whatsapp";
+    const method = fundaeForm?.querySelector('input[name="contact_method"]:checked')?.value || "";
     const usesWhatsapp = method === "whatsapp";
+    const usesEmail = method === "email";
     const phoneField = fundaeForm?.querySelector(".fundae-whatsapp-field");
     const phoneInput = fundaeForm?.querySelector('input[name="phone"]');
     const emailField = fundaeForm?.querySelector(".fundae-email-field");
@@ -515,7 +514,7 @@ const bindFundaeModalEvents = () => {
 
     if (phoneField && emailField && phoneInput && emailInput) {
       phoneField.hidden = !usesWhatsapp;
-      emailField.hidden = usesWhatsapp;
+      emailField.hidden = !usesEmail;
       phoneInput.type = "tel";
       phoneInput.autocomplete = "tel";
       phoneInput.placeholder = "Ej. +34 600 000 000";
@@ -524,8 +523,8 @@ const bindFundaeModalEvents = () => {
       emailInput.type = "email";
       emailInput.autocomplete = "email";
       emailInput.placeholder = "Ej. nombre@empresa.com";
-      emailInput.required = !usesWhatsapp;
-      emailInput.disabled = usesWhatsapp;
+      emailInput.required = usesEmail;
+      emailInput.disabled = !usesEmail;
 
       if (clearValue) {
         phoneInput.value = "";
@@ -562,7 +561,7 @@ const bindFundaeModalEvents = () => {
     const totalCredit = minimumCredit + newWorkers * 65;
     const creditPerEmployee = totalCredit / employees;
 
-    const contactMethod = String(formData.get("contact_method") || "whatsapp");
+    const contactMethod = String(formData.get("contact_method") || "");
     const usesEmailContact = contactMethod === "email";
     const leadPayload = {
       formType: "FUNDAE",
@@ -603,7 +602,6 @@ const setFundaeModalOpen = (isOpen) => {
     document.body.insertAdjacentHTML("beforeend", getFundaeModalMarkup());
     document.body.classList.add("modal-open");
     bindFundaeModalEvents();
-    document.querySelector('#fundae-modal input[name="company"]')?.focus();
     return;
   }
 

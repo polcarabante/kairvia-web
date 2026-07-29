@@ -785,10 +785,16 @@ textarea { resize: vertical; min-height: 132px; }
 }
 .fundae-modal-close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; display: grid; place-items: center; color: #9fb3c3; background: transparent; border: 0; border-radius: 50%; font-size: 22px; }
 .fundae-modal-close:hover { color: white; background: rgba(255,255,255,.06); }
+.fundae-modal-panel > h2 + .fundae-modal-copy { margin-top: 24px; }
 .fundae-modal-copy { margin-top: 0; }
 .fundae-modal-copy p { margin: 0 0 12px; }
-.fundae-official-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 2px; }
-.fundae-official-links .btn { flex: 1 1 250px; min-height: 44px; font-size: .92rem; }
+.fundae-official-links { display: flex; justify-content: center; margin: 18px 0 30px; }
+.fundae-official-links .btn { width: auto; min-height: 44px; font-size: .92rem; }
+.fundae-calculator-form { margin-top: 0; }
+.fundae-number-field { grid-template-rows: auto minmax(4.95em, auto) auto; align-content: start; }
+.fundae-field-label { color: #eaf8ff; }
+.fundae-field-help { color: #93a8ba; font-size: .82rem; line-height: 1.45; font-weight: 700; }
+.fundae-field-help-spacer { visibility: hidden; }
 .contact-method { margin: 0; padding: 0; border: 0; }
 .contact-method legend { margin-bottom: 10px; color: #eaf8ff; font-weight: 900; }
 .contact-method-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -885,6 +891,9 @@ textarea { resize: vertical; min-height: 132px; }
   .copilot-form {
     grid-template-columns: 1fr;
   }
+  .fundae-modal-panel > h2 + .fundae-modal-copy {
+    margin-top: 18px;
+  }
   .copilot-modal-panel {
     padding: 22px;
   }
@@ -973,6 +982,9 @@ textarea { resize: vertical; min-height: 132px; }
   .metric-tile, .solutions-panel, .impact-panel { min-height: auto; padding: 12px; }
   .metric-tile strong { font-size: 1.45rem; }
   .dashboard-main, .flow-list, .invoice-flow, .contact-form, .fundae-calculator-form, .diagnostic-form, .trust-list, .footer-grid { grid-template-columns: 1fr; }
+  .fundae-number-field { grid-template-rows: auto auto auto; }
+  .fundae-field-help-spacer { display: none; }
+  .fundae-official-links { margin-bottom: 22px; }
   .solution-row { grid-template-columns: 1fr; gap: 8px; }
   .impact-chart { height: 150px; gap: 6px; }
   .impact-chart small { font-size: .63rem; }
@@ -1566,6 +1578,28 @@ textarea { resize: vertical; min-height: 132px; }
   gap: 34px;
   align-items: start;
 }
+.training-layout {
+  grid-template-areas:
+    "head head"
+    "copy card";
+  row-gap: 30px;
+}
+.training-head {
+  grid-area: head;
+  max-width: 1180px;
+}
+.training-head h2 {
+  max-width: 1120px;
+}
+.training-head .section-lead {
+  max-width: 900px;
+}
+.training-copy {
+  grid-area: copy;
+}
+.training-card {
+  grid-area: card;
+}
 .security-panel {
   grid-template-columns: .78fr 1.22fr;
   gap: 22px;
@@ -1761,6 +1795,17 @@ textarea { resize: vertical; min-height: 132px; }
   .copilot-hero,
   .copilot-bottom-grid {
     grid-template-columns: 1fr;
+  }
+  .training-layout {
+    grid-template-areas:
+      "head"
+      "copy"
+      "card";
+  }
+  .training-head,
+  .training-head h2,
+  .training-head .section-lead {
+    max-width: 100%;
   }
   .copilot-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
