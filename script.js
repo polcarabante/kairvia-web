@@ -466,13 +466,11 @@ const getFundaeModalMarkup = () => `
           <input type="email" name="email" autocomplete="email" placeholder="Ej. nombre@empresa.com" />
         </label>
         <label class="fundae-number-field">
-          <span class="fundae-field-label">Plantilla media del año anterior</span>
-          <span class="fundae-field-help">Indique el número medio de trabajadores que tuvo la empresa durante el año anterior. Si no conoce el dato exacto, introduzca una cifra aproximada; el resultado de esta calculadora será orientativo.</span>
+          <span class="fundae-field-label">Plantilla media del año anterior (número medio de trabajadores)</span>
           <input type="number" name="employees" min="1" step="1" inputmode="numeric" required />
         </label>
-        <label class="fundae-number-field">
+        <label class="fundae-number-field fundae-base-field">
           <span class="fundae-field-label">Base de otras cotizaciones del año anterior</span>
-          <span class="fundae-field-help fundae-field-help-spacer" aria-hidden="true"></span>
           <input type="number" name="contribution_base" min="0" step="0.01" inputmode="decimal" required />
         </label>
         <label class="full">
