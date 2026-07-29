@@ -377,6 +377,7 @@ const submitLead = async (payload) => {
 
 const fundaeTrigger = document.querySelector("[data-fundae-open]");
 const diagnosticTriggers = document.querySelectorAll("[data-diagnostic-open]");
+const copilotTriggers = document.querySelectorAll("[data-copilot-open]");
 
 let isFundaeModalOpen = false;
 
@@ -423,9 +424,21 @@ const getFundaeModalMarkup = () => `
       <button class="fundae-modal-close" type="button" aria-label="Cerrar calculadora" data-fundae-close>×</button>
       <p class="eyebrow">Calculadora FUNDAE</p>
       <h2 id="fundae-modal-title">Calcule el crédito formativo de su empresa</h2>
-      <p class="fundae-modal-copy">
-        Introduzca los datos de su empresa y obtenga una estimación inmediata del crédito disponible para formación.
-      </p>
+      <div class="fundae-modal-copy">
+        <p>
+          Este cálculo es una estimación orientativa realizada a partir de los datos introducidos. El crédito formativo real puede variar, ya que su cálculo depende de la plantilla media, las cotizaciones por formación profesional del año anterior y otras circunstancias específicas de cada empresa que esta calculadora simplificada puede no contemplar.
+        </p>
+        <p>
+          Para conocer el importe que tiene asignado oficialmente su empresa, deberá consultarlo directamente en la aplicación de FUNDAE o realizar el cálculo mediante su simulador oficial.
+        </p>
+        <p>
+          Kairvia puede ayudarle posteriormente a interpretar el resultado y a gestionar la documentación y los trámites necesarios para aprovechar correctamente su crédito formativo.
+        </p>
+        <div class="fundae-official-links">
+          <a class="btn btn-secondary" href="https://simuladorcredito.fundae.es/" target="_blank" rel="noopener noreferrer">Calcular en el simulador oficial de FUNDAE <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-secondary" href="https://empresas.fundae.es/Lanzadera" target="_blank" rel="noopener noreferrer">Consultar mi crédito en FUNDAE <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
       <form class="fundae-calculator-form">
         <fieldset class="contact-method full">
           <legend>¿Cómo prefiere que le contactemos?</legend>
@@ -471,10 +484,12 @@ const getFundaeModalMarkup = () => `
         <button class="btn btn-primary full" type="submit">Calcular crédito</button>
       </form>
       <div class="fundae-result" hidden aria-live="polite">
+        <p class="fundae-result-heading">Estimación orientativa de su crédito</p>
         <p class="fundae-result-main"></p>
+        <p class="fundae-result-official-note">El importe mostrado no constituye la asignación oficial de FUNDAE. Consulte la aplicación oficial para conocer el crédito definitivo disponible para su empresa.</p>
         <p class="fundae-result-employee"></p>
         <p class="fundae-result-message">
-          Le ayudamos a aprovechar hasta el 100% del crédito FUNDAE disponible para formar a su equipo en inteligencia artificial, acompañándole durante todo el proceso.
+          Le ayudamos a interpretar el resultado y a gestionar la documentación y los trámites necesarios para aprovechar correctamente el crédito formativo que corresponda a su empresa.
         </p>
         <button class="btn btn-primary" type="button" data-fundae-contact>Quiero que me ayuden a gestionarlo</button>
       </div>
@@ -804,6 +819,340 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+
+let isCopilotModalOpen = false;
+
+const getCopilotModalMarkup = () => `
+  <div class="fundae-modal copilot-modal" id="copilot-modal">
+    <div class="fundae-modal-backdrop" data-copilot-backdrop></div>
+    <section class="fundae-modal-panel diagnostic-modal-panel copilot-modal-panel" role="dialog" aria-modal="true" aria-labelledby="copilot-modal-title">
+      <button class="fundae-modal-close" type="button" aria-label="Cerrar formulario de Copilot" data-copilot-close>×</button>
+      <p class="eyebrow">Microsoft 365 Copilot</p>
+      <h2 id="copilot-modal-title">Implementar Microsoft 365 Copilot</h2>
+      <p class="fundae-modal-copy">
+        Cuéntenos cómo trabaja actualmente su equipo y le ayudaremos a valorar la implantación de Microsoft 365 Copilot, identificar casos de uso y preparar su adopción.
+      </p>
+      <form class="copilot-form">
+        <label>
+          Nombre
+          <input type="text" name="name" autocomplete="name" required />
+        </label>
+        <label>
+          Nombre de empresa
+          <input type="text" name="company" autocomplete="organization" required />
+        </label>
+        <label>
+          Número aproximado de empleados
+          <select name="employees_range" required>
+            <option value="">Seleccione una opción</option>
+            <option value="1–10">1–10</option>
+            <option value="11–50">11–50</option>
+            <option value="51–250">51–250</option>
+            <option value="Más de 250">Más de 250</option>
+          </select>
+        </label>
+        <fieldset class="contact-method">
+          <legend>¿Utilizan actualmente Microsoft 365?</legend>
+          <div class="contact-method-options">
+            <label class="contact-method-option">
+              <input type="radio" name="uses_microsoft_365" value="Sí" required />
+              <span>Sí</span>
+            </label>
+            <label class="contact-method-option">
+              <input type="radio" name="uses_microsoft_365" value="No" />
+              <span>No</span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="full form-field">
+          <span class="field-label">Aplicaciones que utiliza el equipo</span>
+          <input type="hidden" name="microsoft_apps" data-copilot-multiselect-value="apps" />
+          <div class="area-multiselect copilot-multiselect" data-copilot-multiselect="apps">
+            <button class="area-multiselect-toggle" type="button" aria-expanded="false" aria-haspopup="listbox" aria-controls="copilot-apps-panel">
+              <span data-copilot-multiselect-summary>Seleccione una o varias aplicaciones</span>
+            </button>
+          </div>
+        </div>
+        <fieldset class="contact-method full">
+          <legend>¿Cómo prefiere que le contactemos?</legend>
+          <div class="contact-method-options">
+            <label class="contact-method-option">
+              <input type="radio" name="contact_method" value="whatsapp" checked />
+              <span>WhatsApp</span>
+            </label>
+            <label class="contact-method-option">
+              <input type="radio" name="contact_method" value="email" />
+              <span>Correo electrónico</span>
+            </label>
+          </div>
+        </fieldset>
+        <label class="full copilot-whatsapp-field">
+          Número de WhatsApp
+          <input type="tel" name="whatsapp" autocomplete="tel" placeholder="Ej. +34 600 000 000" pattern="[+0-9 ]{9,18}" title="Introduce un número de WhatsApp válido." required />
+        </label>
+        <label class="full copilot-email-field" hidden>
+          Correo electrónico
+          <input type="email" name="email" autocomplete="email" placeholder="Ej. nombre@empresa.com" />
+        </label>
+        <label class="full">
+          Mensaje adicional
+          <textarea name="message" rows="4" placeholder="Cuéntenos qué tareas quiere agilizar o qué dudas tiene sobre Microsoft Copilot."></textarea>
+        </label>
+        <button class="btn btn-primary full" type="submit">Solicitar valoración de Copilot</button>
+        <p class="copilot-status full" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </div>
+`;
+
+const copilotMultiselectOptions = {
+  apps: ["Outlook", "Teams", "Word", "Excel", "PowerPoint", "SharePoint", "OneDrive", "Otras"],
+};
+
+const getCopilotFormHasData = (formElement) => {
+  if (!formElement) return false;
+  return Array.from(formElement.elements).some((element) => {
+    if (!element.name || element.type === "hidden" || element.type === "submit") return false;
+    if (element.type === "radio" && element.name === "contact_method") return false;
+    if ((element.type === "radio" || element.type === "checkbox") && element.checked) return true;
+    return "value" in element && String(element.value || "").trim() !== "";
+  });
+};
+
+const updateCopilotContactFields = (copilotForm, { clearValue = false } = {}) => {
+  const method = copilotForm.querySelector('input[name="contact_method"]:checked')?.value || "whatsapp";
+  const whatsappField = copilotForm.querySelector(".copilot-whatsapp-field");
+  const whatsappInput = copilotForm.querySelector('input[name="whatsapp"]');
+  const emailField = copilotForm.querySelector(".copilot-email-field");
+  const emailInput = copilotForm.querySelector('input[name="email"]');
+
+  if (!whatsappField || !whatsappInput || !emailField || !emailInput) return;
+
+  const usesWhatsapp = method === "whatsapp";
+  whatsappField.hidden = !usesWhatsapp;
+  emailField.hidden = usesWhatsapp;
+  whatsappInput.type = "tel";
+  whatsappInput.autocomplete = "tel";
+  whatsappInput.placeholder = "Ej. +34 600 000 000";
+  whatsappInput.required = usesWhatsapp;
+  whatsappInput.disabled = !usesWhatsapp;
+  emailInput.type = "email";
+  emailInput.autocomplete = "email";
+  emailInput.placeholder = "Ej. nombre@empresa.com";
+  emailInput.required = !usesWhatsapp;
+  emailInput.disabled = usesWhatsapp;
+
+  if (clearValue) {
+    whatsappInput.value = "";
+    emailInput.value = "";
+  }
+
+  whatsappInput.setCustomValidity("");
+  emailInput.setCustomValidity("");
+};
+
+const setCopilotMultiselectOpen = (container, isOpen) => {
+  const panel = container?.querySelector(".area-multiselect-panel");
+  const toggle = container?.querySelector(".area-multiselect-toggle");
+  if (!container || !panel || !toggle) return;
+
+  container.classList.toggle("is-open", isOpen);
+  panel.hidden = !isOpen;
+  toggle.setAttribute("aria-expanded", String(isOpen));
+};
+
+const closeAllCopilotMultiselects = (except = null) => {
+  document.querySelectorAll("#copilot-modal [data-copilot-multiselect]").forEach((container) => {
+    if (container !== except) setCopilotMultiselectOpen(container, false);
+  });
+};
+
+const bindCopilotMultiselects = (copilotForm) => {
+  copilotForm.querySelectorAll("[data-copilot-multiselect]").forEach((container) => {
+    const type = container.dataset.copilotMultiselect;
+    const options = copilotMultiselectOptions[type] || [];
+    const hiddenInput = copilotForm.querySelector(`[data-copilot-multiselect-value="${type}"]`);
+    const summary = container.querySelector("[data-copilot-multiselect-summary]");
+    const toggle = container.querySelector(".area-multiselect-toggle");
+    const panelId = "copilot-apps-panel";
+    const defaultText = "Seleccione una o varias aplicaciones";
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="area-multiselect-panel" id="${panelId}" role="listbox" hidden>
+        ${options.map((option) => `
+          <label>
+            <input type="checkbox" value="${option}" />
+            <span>${option}</span>
+          </label>
+        `).join("")}
+      </div>
+    `);
+
+    const update = () => {
+      const selected = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
+      hiddenInput.value = selected.join(", ");
+      summary.textContent = selected.length === 0
+        ? defaultText
+        : selected.length === 1
+          ? "1 opción seleccionada"
+          : `${selected.length} opciones seleccionadas`;
+    };
+
+    toggle.addEventListener("click", () => {
+      const isOpen = toggle.getAttribute("aria-expanded") === "true";
+      closeAllCopilotMultiselects(container);
+      setCopilotMultiselectOpen(container, !isOpen);
+    });
+
+    toggle.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle.click();
+      }
+    });
+
+    container.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+      checkbox.addEventListener("change", update);
+    });
+
+    update();
+  });
+};
+
+const setCopilotModalOpen = (isOpen, { force = false } = {}) => {
+  const existingModal = document.querySelector("#copilot-modal");
+
+  if (isOpen) {
+    if (existingModal) return;
+    isCopilotModalOpen = true;
+    document.body.insertAdjacentHTML("beforeend", getCopilotModalMarkup());
+    document.body.classList.add("modal-open");
+    bindCopilotModalEvents();
+    document.querySelector('#copilot-modal input[name="name"]')?.focus();
+    return;
+  }
+
+  const copilotForm = existingModal?.querySelector(".copilot-form");
+  if (!force && getCopilotFormHasData(copilotForm)) return;
+
+  isCopilotModalOpen = false;
+  existingModal?.remove();
+  document.body.classList.remove("modal-open");
+};
+
+const bindCopilotModalEvents = () => {
+  const copilotModal = document.querySelector("#copilot-modal");
+  const copilotForm = copilotModal?.querySelector(".copilot-form");
+  const copilotStatus = copilotModal?.querySelector(".copilot-status");
+
+  if (!copilotForm) return;
+
+  bindContactValidationMessages(copilotForm);
+  bindCopilotMultiselects(copilotForm);
+  updateCopilotContactFields(copilotForm);
+
+  copilotModal?.querySelector("[data-copilot-close]")?.addEventListener("click", () => setCopilotModalOpen(false, { force: true }));
+  copilotModal?.querySelector("[data-copilot-backdrop]")?.addEventListener("click", () => setCopilotModalOpen(false));
+
+  copilotForm.querySelectorAll('input[name="contact_method"]').forEach((input) => {
+    input.addEventListener("change", () => updateCopilotContactFields(copilotForm, { clearValue: true }));
+  });
+
+  copilotModal?.addEventListener("click", (event) => {
+    if (!event.target.closest("[data-copilot-multiselect]")) {
+      closeAllCopilotMultiselects();
+    }
+  });
+
+  copilotForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitButton = copilotForm.querySelector('button[type="submit"]');
+    const formData = new FormData(copilotForm);
+    const apps = String(formData.get("microsoft_apps") || "").trim();
+
+    if (!apps) {
+      copilotStatus.textContent = "Seleccione al menos una aplicación que utilice el equipo.";
+      copilotStatus.classList.add("error");
+      copilotForm.querySelector('[data-copilot-multiselect="apps"] .area-multiselect-toggle')?.focus();
+      return;
+    }
+
+
+    const contactMethod = String(formData.get("contact_method") || "whatsapp");
+    const usesEmailContact = contactMethod === "email";
+    const baseMessage = String(formData.get("message") || "").trim();
+    const employeesRange = String(formData.get("employees_range") || "").trim();
+    const microsoft365Usage = String(formData.get("uses_microsoft_365") || "").trim();
+    const payload = {
+      formType: "Microsoft Copilot",
+      origin: "microsoft_copilot",
+      contactPreference: usesEmailContact ? "Correo electrónico" : "WhatsApp",
+      name: String(formData.get("name") || "").trim(),
+      company: String(formData.get("company") || "").trim(),
+      phone: usesEmailContact ? "" : String(formData.get("whatsapp") || "").trim(),
+      email: usesEmailContact ? String(formData.get("email") || "").trim() : "",
+      employeesRange,
+      microsoft365Usage,
+      microsoftApps: apps,
+      areas: `Microsoft 365 Copilot. Aplicaciones: ${apps}`,
+      message: [
+        `Origen: Microsoft 365 Copilot`,
+        `Número aproximado de empleados: ${employeesRange}`,
+        `Uso actual de Microsoft 365: ${microsoft365Usage}`,
+        `Aplicaciones que utiliza el equipo: ${apps}`,
+        baseMessage ? `Mensaje adicional: ${baseMessage}` : "Mensaje adicional: No indicado",
+      ].join("\n"),
+    };
+
+    copilotStatus.textContent = "Enviando solicitud...";
+    copilotStatus.classList.remove("error");
+    submitButton.disabled = true;
+
+    try {
+      await submitLead(payload);
+      copilotForm.reset();
+      copilotForm.querySelectorAll("[data-copilot-multiselect]").forEach((container) => {
+        const type = container.dataset.copilotMultiselect;
+        const defaultText = "Seleccione una o varias aplicaciones";
+        container.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+          checkbox.checked = false;
+        });
+        const hiddenInput = copilotForm.querySelector(`[data-copilot-multiselect-value="${type}"]`);
+        const summary = container.querySelector("[data-copilot-multiselect-summary]");
+        if (hiddenInput) hiddenInput.value = "";
+        if (summary) summary.textContent = defaultText;
+        setCopilotMultiselectOpen(container, false);
+      });
+      updateCopilotContactFields(copilotForm);
+      closeAllCopilotMultiselects();
+      copilotStatus.textContent = payload.email
+        ? "Solicitud enviada correctamente. Le hemos enviado un email de confirmación."
+        : "Solicitud enviada correctamente. Hemos guardado sus datos para contactarle por WhatsApp.";
+    } catch (error) {
+      console.error("Copilot lead error", error);
+      copilotStatus.textContent = error.message;
+      copilotStatus.classList.add("error");
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+};
+
+copilotTriggers.forEach((trigger) => {
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeNavMenu();
+    setCopilotModalOpen(true);
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    if (isCopilotModalOpen) setCopilotModalOpen(false, { force: true });
+    closeAllCopilotMultiselects();
+  }
+});
 
 
 const getContactFormMethod = () =>

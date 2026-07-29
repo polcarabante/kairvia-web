@@ -273,6 +273,10 @@ const buildContactPayload = (lead) => {
   addAttribute(attributes, "ESTADO", "Nuevo");
   addAttribute(attributes, "MENSAJE", lead.message);
   addAttribute(attributes, "AREAS", lead.areas);
+  addAttribute(attributes, "ORIGEN", lead.origin);
+  addAttribute(attributes, "NUMERO_EMPLEADOS", lead.employeesRange);
+  addAttribute(attributes, "USO_ACTUAL_MICROSOFT_365", lead.microsoft365Usage);
+  addAttribute(attributes, "APLICACIONES_MICROSOFT", lead.microsoftApps);
 
   if (phone) {
     addAttribute(attributes, "TELEFONO", phone);
@@ -316,6 +320,10 @@ const requiredContactAttributes = [
   { name: "AREAS", type: "text" },
   { name: "ESTADO", type: "text" },
   { name: "MENSAJE", type: "text" },
+  { name: "ORIGEN", type: "text" },
+  { name: "NUMERO_EMPLEADOS", type: "text" },
+  { name: "USO_ACTUAL_MICROSOFT_365", type: "text" },
+  { name: "APLICACIONES_MICROSOFT", type: "text" },
 ];
 
 let attributesReady = false;
@@ -455,6 +463,10 @@ const handlePost = async (request, response) => {
     contactPreference: contactPreference || (email ? "Correo electrónico" : ""),
     message: normalizeText(body.message || body.mensaje),
     areas: Array.isArray(body.areas) ? body.areas.join(", ") : normalizeText(body.areas),
+    origin: normalizeText(body.origin || body.origen),
+    employeesRange: normalizeText(body.employeesRange || body.numeroEmpleados || body.numero_empleados),
+    microsoft365Usage: normalizeText(body.microsoft365Usage || body.usoActualMicrosoft365 || body.uso_actual_microsoft_365),
+    microsoftApps: Array.isArray(body.microsoftApps) ? body.microsoftApps.join(", ") : normalizeText(body.microsoftApps || body.aplicacionesMicrosoft || body.aplicaciones_microsoft),
     submittedAt: getBrevoDate(),
   };
 
