@@ -70,14 +70,12 @@ button { cursor: pointer; }
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 900; }
 .brand-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
+  display: block;
+  width: 54px;
   height: 38px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--blue-2), var(--teal));
-  border-radius: 8px;
-  box-shadow: 0 0 28px rgba(18, 183, 176, .34);
+  object-fit: contain;
+  object-position: center;
+  flex: 0 0 auto;
 }
 .nav-menu { display: flex; justify-content: center; align-items: center; gap: 22px; color: #c2d1df; font-size: .9rem; font-weight: 800; }
 .nav-menu a { position: relative; padding: 8px 0; }
@@ -336,7 +334,7 @@ p, li { color: var(--muted); line-height: 1.65; }
   font-weight: 800;
 }
 .dashboard-topbar div { display: inline-flex; align-items: center; gap: 9px; min-width: max-content; }
-.dashboard-brand-mark { width: 30px; height: 30px; border-radius: 8px; font-size: .85rem; }
+.dashboard-brand-mark { width: 40px; height: 30px; border-radius: 0; }
 .dashboard-topbar strong { color: #fff; }
 .dashboard-topbar em { justify-self: end; padding: 8px 10px; color: var(--aqua); background: rgba(18,183,176,.1); border: 1px solid rgba(138,247,239,.18); border-radius: 999px; font-style: normal; white-space: nowrap; }
 .dashboard-tabs { display: flex; justify-content: center; gap: 8px; min-width: 0; }
@@ -749,6 +747,10 @@ textarea { resize: vertical; min-height: 132px; }
 .area-multiselect-toggle { display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; cursor: pointer; }
 .area-multiselect-toggle::after { content: ""; flex: 0 0 auto; width: 9px; height: 9px; border-right: 2px solid var(--aqua); border-bottom: 2px solid var(--aqua); transform: rotate(45deg) translateY(-2px); transition: transform .2s ease; }
 .area-multiselect-toggle[aria-expanded="true"]::after { transform: rotate(225deg) translate(-2px, -2px); }
+.copilot-employees-select { min-height: 54px; padding: 14px 42px 14px 15px; color: #eff8ff; font: inherit; font-size: 1rem; font-weight: 900; line-height: 1.2; background-color: rgba(255,255,255,.06); background-image: linear-gradient(45deg, transparent 50%, var(--aqua) 50%), linear-gradient(135deg, var(--aqua) 50%, transparent 50%); background-position: calc(100% - 22px) 50%, calc(100% - 15px) 50%; background-size: 8px 8px, 8px 8px; background-repeat: no-repeat; border: 1px solid rgba(218,241,255,.15); border-radius: 12px; cursor: pointer; }
+.copilot-employees-select:hover { border-color: rgba(138,247,239,.28); background-color: rgba(255,255,255,.075); }
+.copilot-employees-select:focus-visible { outline: 3px solid rgba(138, 247, 239, .42); outline-offset: 3px; }
+.copilot-employees-select option { color: #0f2236; background-color: #f8fbff; font-weight: 700; }
 .area-multiselect-panel { position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 70; display: grid; gap: 8px; max-height: min(280px, 48vh); overflow-x: hidden; overflow-y: auto; box-sizing: border-box; padding: 12px; background: rgba(6,17,31,.99); border: 1px solid rgba(138,247,239,.28); border-radius: 14px; box-shadow: 0 24px 70px rgba(0,0,0,.42), 0 0 0 1px rgba(52,211,235,.08); }
 .area-multiselect:not(.is-open) .area-multiselect-panel { display: none !important; }
 .area-multiselect.is-open .area-multiselect-panel { display: grid; }
@@ -1346,6 +1348,7 @@ textarea { resize: vertical; min-height: 132px; }
 
 /* Recovered pre-reform sections, adapted only to the current dark Kairvia palette. */
 .anchor-target,
+#inicio,
 #automatizaciones,
 #proceso,
 #ejemplos,

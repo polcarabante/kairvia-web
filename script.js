@@ -621,7 +621,7 @@ const getCopilotModalMarkup = () => `
         </label>
         <label>
           Número aproximado de empleados
-          <select name="employees_range" required>
+          <select class="copilot-employees-select" name="employees_range" required>
             <option value="">Seleccione una opción</option>
             <option value="1–10">1–10</option>
             <option value="11–50">11–50</option>
