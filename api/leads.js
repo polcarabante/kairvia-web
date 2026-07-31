@@ -383,14 +383,16 @@ const saveLead = async (lead) => {
 
     const updatePayload = buildUpdatePayload(lead);
     const encodedIdentifier = encodeURIComponent(identifier);
+    const identifierType = lead.email ? "" : "?identifierType=ext_id";
     console.error("Brevo contact exists, updating contact", safeStringify({
       originalCategory: error.category,
       originalMessage: error.message,
       identifier,
+      identifierType: lead.email ? "email" : "ext_id",
       updatePayload,
     }));
 
-    await brevoFetch(`/contacts/${encodedIdentifier}`, {
+    await brevoFetch(`/contacts/${encodedIdentifier}${identifierType}`, {
       method: "PUT",
       body: JSON.stringify(updatePayload),
     });
