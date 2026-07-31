@@ -240,13 +240,21 @@ const sendAdminNotification = async (lead) => {
   });
 };
 
-const validateBrevoListId = (formType) => {
+const getValidBrevoListId = (formType) => {
   const listId = getListIdForType(formType);
 
   if (!Number.isInteger(listId) || listId <= 0) {
-    const error = new Error(`Brevo list ID inválido para ${formType}. Revisa la variable de entorno y usa solo el número, por ejemplo 2, sin #.`);
-    error.category = "list ID incorrecto o lista inexistente";
-    throw error;
+    console.error("Brevo list ID warning", safeStringify({
+      category: "list ID incorrecto o lista inexistente",
+      formType,
+      rawListIds: {
+        diagnostic: process.env.BREVO_DIAGNOSTIC_LIST_ID || null,
+        contact: process.env.BREVO_CONTACT_LIST_ID || null,
+        fundae: process.env.BREVO_FUNDAE_LIST_ID || null,
+      },
+      message: "No se enviara listIds a Brevo. El contacto se guardara sin lista hasta configurar el ID numerico en Vercel.",
+    }));
+    return null;
   }
 
   return listId;
@@ -261,7 +269,7 @@ const addAttribute = (attributes, key, value) => {
 };
 
 const buildContactPayload = (lead) => {
-  const listId = validateBrevoListId(lead.formType);
+  const listId = getValidBrevoListId(lead.formType);
   const phone = lead.phone || "";
   const isWhatsappLead = lead.contactPreference === "WhatsApp";
   const attributes = {};
@@ -284,9 +292,12 @@ const buildContactPayload = (lead) => {
 
   const payload = {
     updateEnabled: true,
-    listIds: [listId],
     attributes,
   };
+
+  if (listId) {
+    payload.listIds = [listId];
+  }
 
   if (lead.email) {
     payload.email = lead.email;
@@ -299,10 +310,13 @@ const buildContactPayload = (lead) => {
   return payload;
 };
 
-const buildUpdatePayload = (lead) => ({
-  attributes: buildContactPayload(lead).attributes,
-  listIds: [validateBrevoListId(lead.formType)],
-});
+const buildUpdatePayload = (lead) => {
+  const payload = buildContactPayload(lead);
+  return {
+    attributes: payload.attributes,
+    ...(payload.listIds ? { listIds: payload.listIds } : {}),
+  };
+};
 
 const requiredContactAttributes = [
   { name: "NOMBRE", type: "text" },
@@ -359,7 +373,7 @@ const saveLead = async (lead) => {
       contact: process.env.BREVO_CONTACT_LIST_ID || null,
       fundae: process.env.BREVO_FUNDAE_LIST_ID || null,
     },
-    selectedListId: payload.listIds?.[0],
+    selectedListId: payload.listIds?.[0] || null,
     hasEmail: Boolean(lead.email),
     phone: lead.phone,
     identifier,
