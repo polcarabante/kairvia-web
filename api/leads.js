@@ -577,13 +577,6 @@ export default async function handler(request, response) {
 
     console.error("Lead endpoint error", safeStringify(diagnostic));
 
-    if (request.headers["x-kairvia-debug"] === "codex-20260731") {
-      return json(response, 500, {
-        error: "Ha ocurrido un problema al enviar la solicitud. Por favor, inténtelo de nuevo en unos minutos.",
-        diagnostic,
-      });
-    }
-
     return json(response, 500, {
       error: "Ha ocurrido un problema al enviar la solicitud. Por favor, inténtelo de nuevo en unos minutos.",
     });
