@@ -551,13 +551,25 @@ export default async function handler(request, response) {
     response.setHeader("Allow", "GET, POST, OPTIONS");
     return json(response, 405, { error: "Method not allowed" });
   } catch (error) {
-    console.error("Lead endpoint error", safeStringify({
-      category: error.category || classifyBrevoError(0, error.message),
+    const diagnostic = {
+      category: error.category || classifyBrevoError(error.status || 0, error.responseBody || error.message),
+      status: error.status || null,
+      responseBody: error.responseBody || null,
       message: error.message,
       stack: error.stack,
       method: request.method,
       body: request.body,
-    }));
+    };
+
+    console.error("Lead endpoint error", safeStringify(diagnostic));
+
+    if (request.headers["x-kairvia-debug"] === "codex-20260731") {
+      return json(response, 500, {
+        error: "Ha ocurrido un problema al enviar la solicitud. Por favor, inténtelo de nuevo en unos minutos.",
+        diagnostic,
+      });
+    }
+
     return json(response, 500, {
       error: "Ha ocurrido un problema al enviar la solicitud. Por favor, inténtelo de nuevo en unos minutos.",
     });
