@@ -273,14 +273,9 @@ const buildContactPayload = (lead) => {
   addAttribute(attributes, "ESTADO", "Nuevo");
   addAttribute(attributes, "MENSAJE", lead.message);
   addAttribute(attributes, "AREAS", lead.areas);
-  addAttribute(attributes, "ORIGEN", lead.origin);
-  addAttribute(attributes, "NUMERO_EMPLEADOS", lead.employeesRange);
-  addAttribute(attributes, "USO_ACTUAL_MICROSOFT_365", lead.microsoft365Usage);
-  addAttribute(attributes, "APLICACIONES_MICROSOFT", lead.microsoftApps);
 
   if (phone) {
     addAttribute(attributes, "TELEFONO", phone);
-    addAttribute(attributes, "SMS", phone);
 
     if (isWhatsappLead) {
       addAttribute(attributes, "WHATSAPP", phone);
@@ -314,16 +309,11 @@ const requiredContactAttributes = [
   { name: "EMPRESA", type: "text" },
   { name: "WHATSAPP", type: "text" },
   { name: "TELEFONO", type: "text" },
-  { name: "SMS", type: "text" },
   { name: "PREFERENCIA_CONTACTO", type: "text" },
   { name: "FECHA_ENVIO", type: "date" },
   { name: "AREAS", type: "text" },
   { name: "ESTADO", type: "text" },
   { name: "MENSAJE", type: "text" },
-  { name: "ORIGEN", type: "text" },
-  { name: "NUMERO_EMPLEADOS", type: "text" },
-  { name: "USO_ACTUAL_MICROSOFT_365", type: "text" },
-  { name: "APLICACIONES_MICROSOFT", type: "text" },
 ];
 
 let attributesReady = false;
